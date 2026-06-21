@@ -9716,3 +9716,8607 @@ DNS = Tells where address goes
 
 # VPC Fundamentals
 
+# AWS VPC, Subnets, Internet Gateway & NAT Gateway — Key Points
+
+# What is a VPC?
+
+VPC = Virtual Private Cloud
+
+```text
+Your private network inside AWS
+```
+
+Used to host:
+
+- EC2
+- RDS
+- ECS
+- Load Balancers
+
+---
+
+# Important Exam Point
+
+```text
+VPC is a Regional Resource
+```
+
+Example:
+
+```text
+Mumbai Region → VPC A
+Singapore Region → VPC B
+```
+
+---
+
+# What is a Subnet?
+
+A subnet is a:
+
+```text
+Partition of a VPC network
+```
+
+---
+
+# Important Exam Point
+
+```text
+Subnet = Availability Zone scoped
+```
+
+Example:
+
+```text
+AZ-1 → Public + Private Subnet
+AZ-2 → Public + Private Subnet
+```
+
+---
+
+# Public vs Private Subnet
+
+| Type | Internet Access |
+|---|---|
+| Public Subnet | Yes |
+| Private Subnet | No |
+
+---
+
+# Public Subnet
+
+Resources can:
+
+✅ access internet  
+✅ be accessed from internet
+
+Example:
+
+```text
+ALB
+Web Servers
+NAT Gateway
+```
+
+---
+
+# Private Subnet
+
+Resources:
+
+✅ can stay hidden from internet
+
+Examples:
+
+```text
+RDS
+Internal APIs
+Backend Services
+```
+
+---
+
+# Route Tables
+
+Control:
+
+```text
+Network traffic flow
+```
+
+inside VPC.
+
+Think:
+
+```text
+Routing rules
+```
+
+---
+
+# Internet Gateway (IGW)
+
+What makes a subnet public?
+
+```text
+Internet Gateway
+```
+
+---
+
+# Flow
+
+```text
+Public EC2
+    ↓
+Internet Gateway
+    ↓
+Internet
+```
+
+---
+
+# Important Exam Point
+
+A public subnet has:
+
+```text
+Route to Internet Gateway
+```
+
+---
+
+# NAT Gateway
+
+Used when:
+
+```text
+Private subnet needs outbound internet
+```
+
+but should remain private.
+
+---
+
+# Example
+
+Private EC2 wants:
+
+- OS updates
+- package downloads
+- API calls
+
+---
+
+# NAT Gateway Flow
+
+```text
+Private EC2
+      ↓
+NAT Gateway
+      ↓
+Internet Gateway
+      ↓
+Internet
+```
+
+---
+
+# Important Behavior
+
+Private EC2 can:
+
+✅ access internet
+
+Internet cannot:
+
+❌ initiate connection back
+
+---
+
+# NAT Gateway Location
+
+Must be deployed in:
+
+```text
+Public Subnet
+```
+
+---
+
+# NAT Gateway vs NAT Instance
+
+| NAT Gateway | NAT Instance |
+|---|---|
+| AWS Managed | Self Managed |
+| Auto Scaling | You manage |
+| Recommended | Legacy |
+
+---
+
+# Typical AWS Architecture
+
+```text
+VPC
+│
+├── Public Subnet
+│      ├── ALB
+│      └── NAT Gateway
+│
+└── Private Subnet
+       ├── ECS
+       ├── EC2
+       └── RDS
+```
+
+---
+
+# Default VPC
+
+Every AWS account gets:
+
+```text
+Default VPC
+```
+
+Features:
+
+- one VPC per region
+- public subnets
+- ready to use
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|---|---|
+| VPC | Regional |
+| Subnet | AZ-level |
+| Internet Gateway | Public internet access |
+| NAT Gateway | Private subnet outbound internet |
+| Route Table | Controls routing |
+| Default VPC | Created automatically |
+
+---
+
+# Azure Mapping
+
+| AWS | Azure |
+|---|---|
+| VPC | Virtual Network (VNet) |
+| Subnet | Subnet |
+| Internet Gateway | Public Internet Route |
+| NAT Gateway | Azure NAT Gateway |
+| Route Table | User Defined Routes (UDR) |
+
+---
+
+# Mental Model
+
+```text
+Public Subnet
+   ↓
+Internet Gateway
+   ↓
+Internet
+
+Private Subnet
+   ↓
+NAT Gateway
+   ↓
+Internet Gateway
+   ↓
+Internet
+```
+
+---
+
+# One-Line Revision
+
+> A VPC is your private AWS network, public subnets use an Internet Gateway for internet access, and private subnets use a NAT Gateway for outbound internet access while remaining inaccessible from the internet.
+
+- ![alt text](image-184.png)
+- ![alt text](image-185.png)
+- ![alt text](image-186.png)
+
+
+# VPC Security: NACLs, Security Groups & Flow Logs — Key Points
+
+# 1. Network ACL (NACL)
+
+A NACL is a:
+
+```text
+Subnet-level firewall
+```
+
+Controls traffic:
+
+```text
+Into and out of subnets
+```
+
+---
+
+# NACL Characteristics
+
+✅ Allow rules  
+✅ Deny rules
+
+Can filter by:
+
+```text
+IP addresses only
+```
+
+---
+
+# Example
+
+```text
+Internet
+    ↓
+NACL
+    ↓
+Subnet
+```
+
+---
+
+# 2. Security Groups
+
+A Security Group is a:
+
+```text
+Instance-level firewall
+```
+
+Attached to:
+
+- EC2
+- ENI (Elastic Network Interface)
+
+---
+
+# Security Group Characteristics
+
+✅ Allow rules only
+
+Can reference:
+
+- IP addresses
+- Other Security Groups
+
+---
+
+# Example
+
+```text
+Internet
+    ↓
+NACL
+    ↓
+Subnet
+    ↓
+Security Group
+    ↓
+EC2
+```
+
+---
+
+# NACL vs Security Group
+
+| Feature | Security Group | NACL |
+|---|---|---|
+| Scope | EC2 / ENI | Subnet |
+| Rules | Allow only | Allow + Deny |
+| References SGs | Yes | No |
+| References IPs | Yes | Yes |
+| Stateful | Yes | No |
+
+---
+
+# Stateful vs Stateless
+
+## Security Group (Stateful)
+
+```text
+Request Allowed
+↓
+Response Automatically Allowed
+```
+
+No extra rule needed.
+
+---
+
+# NACL (Stateless)
+
+```text
+Allow Incoming
++
+Allow Outgoing
+```
+
+Both directions must be explicitly allowed.
+
+---
+
+# Easy Exam Memory Trick
+
+```text
+NACL = Network/Subnet Firewall
+
+Security Group = Server Firewall
+```
+
+---
+
+# Default VPC Behavior
+
+Default NACL:
+
+```text
+Allows everything
+```
+
+That's why you rarely touched NACLs in labs.
+
+---
+
+# VPC Flow Logs
+
+Used to capture:
+
+```text
+Network traffic logs
+```
+
+for troubleshooting.
+
+---
+
+# What Gets Logged?
+
+- VPC traffic
+- Subnet traffic
+- ENI traffic
+
+---
+
+# Use Cases
+
+Find out:
+
+- Why internet access fails
+- Why EC2 can't reach RDS
+- Why subnets can't communicate
+- Why connections are denied
+
+---
+
+# Flow Logs Show
+
+✅ Allowed traffic  
+✅ Rejected traffic
+
+---
+
+# AWS Services Included
+
+Traffic involving:
+
+- EC2
+- ALB
+- RDS
+- Aurora
+- ElastiCache
+
+can appear in Flow Logs.
+
+---
+
+# Where Can Logs Be Sent?
+
+- CloudWatch Logs
+- S3
+- Kinesis Data Firehose
+
+---
+
+# Azure Mapping
+
+| AWS | Azure |
+|---|---|
+| Security Group | NSG |
+| NACL | NSG + UDR style filtering |
+| VPC Flow Logs | NSG Flow Logs / Network Watcher |
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|---|---|
+| NACL | Subnet firewall |
+| Security Group | Instance firewall |
+| SG | Stateful |
+| NACL | Stateless |
+| SG | Allow only |
+| NACL | Allow + Deny |
+| Flow Logs | Network troubleshooting |
+
+---
+
+# Mental Model
+
+```text
+Internet
+   ↓
+NACL (Subnet Firewall)
+   ↓
+Security Group (Server Firewall)
+   ↓
+EC2
+```
+
+---
+
+# One-Line Revision
+
+> NACLs protect subnets, Security Groups protect instances, and VPC Flow Logs help troubleshoot network connectivity issues.
+
+
+ # VPC Connectivity: Peering, Endpoints, VPN & Direct Connect — Key Points
+
+# 1. VPC Peering
+
+Used to connect:
+
+```text
+VPC ↔ VPC
+```
+
+privately over AWS network.
+
+---
+
+# Example
+
+```text
+VPC-A
+   ↔
+VPC-B
+```
+
+Resources communicate as if on same network.
+
+---
+
+# Important Requirement
+
+VPC CIDR ranges must:
+
+```text
+NOT overlap
+```
+
+Example:
+
+```text
+VPC-A = 10.0.0.0/16
+VPC-B = 10.1.0.0/16
+```
+
+✅ Works
+
+---
+
+# Important Limitation
+
+VPC Peering is:
+
+```text
+NOT Transitive
+```
+
+Example:
+
+```text
+A ↔ B
+A ↔ C
+```
+
+Does NOT mean:
+
+```text
+B ↔ C
+```
+
+You must create:
+
+```text
+B ↔ C
+```
+
+separately.
+
+---
+
+# 2. VPC Endpoints
+
+Used to access:
+
+```text
+AWS Services Privately
+```
+
+without internet access.
+
+---
+
+# Problem
+
+Private EC2 wants to access:
+
+- S3
+- DynamoDB
+- CloudWatch
+
+but has no internet access.
+
+---
+
+# Solution
+
+```text
+VPC Endpoint
+```
+
+---
+
+# Benefits
+
+✅ Private connectivity  
+✅ Better security  
+✅ Lower latency
+
+---
+
+# Types
+
+## Gateway Endpoint
+
+Used only for:
+
+- S3
+- DynamoDB
+
+---
+
+# Interface Endpoint
+
+Used for:
+
+```text
+Most AWS Services
+```
+
+Example:
+
+- CloudWatch
+- SNS
+- SQS
+- Secrets Manager
+
+---
+
+# Easy Exam Memory
+
+```text
+Need private access to AWS service?
+
+→ Use VPC Endpoint
+```
+
+---
+
+# 3. Site-to-Site VPN
+
+Connects:
+
+```text
+On-Prem Data Center
+        ↔
+AWS VPC
+```
+
+---
+
+# Characteristics
+
+✅ Encrypted  
+✅ Uses Public Internet  
+✅ Fast to setup (minutes)
+
+---
+
+# Architecture
+
+```text
+Office
+   ↓ VPN
+Internet
+   ↓
+AWS VPC
+```
+
+---
+
+# 4. Direct Connect
+
+Also connects:
+
+```text
+On-Prem Data Center
+        ↔
+AWS VPC
+```
+
+---
+
+# Characteristics
+
+✅ Private connection  
+✅ Faster & more reliable  
+✅ Does NOT use public internet
+
+---
+
+# Architecture
+
+```text
+Office
+   ↓
+Dedicated Physical Line
+   ↓
+AWS VPC
+```
+
+---
+
+# Important Limitation
+
+Setup time:
+
+```text
+~1 month or more
+```
+
+because physical networking is involved.
+
+---
+
+# VPN vs Direct Connect
+
+| Feature | VPN | Direct Connect |
+|---|---|---|
+| Internet Based | Yes | No |
+| Encrypted | Yes | Optional |
+| Setup Time | Minutes | Weeks/Months |
+| Cost | Lower | Higher |
+| Performance | Good | Best |
+
+---
+
+# Azure Mapping
+
+| AWS | Azure |
+|---|---|
+| VPC Peering | VNet Peering |
+| VPC Endpoint | Private Endpoint |
+| Site-to-Site VPN | VPN Gateway |
+| Direct Connect | ExpressRoute |
+
+---
+
+# Important Exam Points
+
+| Service | Use Case |
+|---|---|
+| VPC Peering | VPC ↔ VPC |
+| VPC Endpoint | Private access to AWS services |
+| VPN | Quick encrypted on-prem connection |
+| Direct Connect | Dedicated private connection |
+
+---
+
+# Mental Model
+
+```text
+Need VPC ↔ VPC?
+→ VPC Peering
+
+Need Private AWS Service Access?
+→ VPC Endpoint
+
+Need On-Prem ↔ AWS?
+→ VPN or Direct Connect
+```
+
+---
+
+# One-Line Revision
+
+> VPC Peering connects VPCs, VPC Endpoints provide private access to AWS services, VPN provides encrypted internet-based connectivity, and Direct Connect provides dedicated private connectivity to AWS.
+
+- ![alt text](image-187.png)
+- ![alt text](image-188.png)
+- ![alt text](image-189.png)
+
+# Typical AWS 3-Tier Architecture — Key Points
+
+# Why VPC Concepts Matter
+
+All the VPC concepts (subnets, NAT, routing, security groups) come together in a standard:
+
+```text
+3-Tier Architecture
+```
+
+This is extremely common in AWS exams and real projects.
+
+---
+
+# Tier 1: Web Layer
+
+Components:
+
+- Route 53
+- ALB
+
+Location:
+
+```text
+Public Subnets
+```
+
+---
+
+# Flow
+
+```text
+User
+  ↓
+Route 53
+  ↓
+ALB
+```
+
+ALB must be publicly accessible.
+
+---
+
+# Tier 2: Application Layer
+
+Components:
+
+- EC2
+- ECS
+- Auto Scaling Group
+
+Location:
+
+```text
+Private Subnets
+```
+
+---
+
+# Flow
+
+```text
+ALB
+  ↓
+EC2/ECS
+```
+
+Users cannot directly access application servers.
+
+Only ALB can.
+
+---
+
+# Tier 3: Data Layer
+
+Components:
+
+- RDS
+- ElastiCache
+
+Location:
+
+```text
+Private Data Subnets
+```
+
+---
+
+# Flow
+
+```text
+EC2/ECS
+   ↓
+RDS
+```
+
+and optionally
+
+```text
+EC2/ECS
+   ↓
+ElastiCache
+```
+
+---
+
+# Full Architecture
+
+```text
+Users
+   ↓
+Route53
+   ↓
+ALB (Public Subnet)
+   ↓
+EC2 / ECS (Private Subnet)
+   ↓
+RDS / ElastiCache (Private Data Subnet)
+```
+
+---
+
+# Why This Design?
+
+| Layer | Reason |
+|---------|---------|
+| ALB | Public entry point |
+| App Servers | Hidden from internet |
+| Database | Completely private |
+
+Provides:
+
+✅ Security  
+✅ Scalability  
+✅ High Availability
+
+---
+
+# Azure Equivalent
+
+| AWS | Azure |
+|---|---|
+| Route 53 | Azure DNS |
+| ALB | Application Gateway |
+| EC2/ECS | App Service / AKS / VMSS |
+| RDS | Azure SQL |
+| ElastiCache | Azure Redis Cache |
+
+---
+
+# LAMP Stack
+
+Classic web architecture.
+
+LAMP =
+
+```text
+L = Linux
+A = Apache
+M = MySQL
+P = PHP
+```
+
+---
+
+# Architecture
+
+```text
+Linux EC2
+    ↓
+Apache
+    ↓
+PHP Application
+    ↓
+MySQL (RDS)
+```
+
+Optional:
+
+```text
+ElastiCache (Redis)
+```
+
+for caching.
+
+---
+
+# WordPress Architecture
+
+WordPress is usually deployed as:
+
+```text
+ALB
+ ↓
+Multiple EC2 Instances
+ ↓
+Shared EFS Storage
+ ↓
+RDS Database
+```
+
+---
+
+# Why EFS?
+
+All EC2 instances need access to:
+
+- uploaded images
+- media files
+- shared content
+
+EFS provides:
+
+```text
+Shared Network File System
+```
+
+across all AZs.
+
+---
+
+# Example
+
+```text
+EC2-A
+   ↘
+     EFS
+   ↗
+EC2-B
+```
+
+Both see same files.
+
+---
+
+# Important Exam Points
+
+| Service | Purpose |
+|----------|----------|
+| Route 53 | DNS |
+| ALB | Public entry point |
+| Auto Scaling | Scale app servers |
+| RDS | Database |
+| ElastiCache | Cache |
+| EFS | Shared file storage |
+
+---
+
+# Mental Model
+
+```text
+Public Subnet
+   ↓
+ALB
+
+Private Subnet
+   ↓
+ECS / EC2
+
+Private Data Subnet
+   ↓
+RDS / Redis
+```
+
+---
+
+# One-Line Revision
+
+> A typical AWS 3-tier architecture places ALBs in public subnets, application servers in private subnets, and databases/caches in isolated private data subnets for security and scalability.
+
+- ![alt text](image-190.png)
+
+# Amazon S3 (Simple Storage Service) — Key Points
+
+# What is S3?
+
+Amazon S3 is:
+
+```text
+Object Storage Service
+```
+
+One of the most important AWS services.
+
+---
+
+# Core Idea
+
+```text
+Store files at virtually unlimited scale
+```
+
+AWS manages all storage infrastructure.
+
+---
+
+# Common Use Cases
+
+- File storage
+- Backups
+- Disaster recovery
+- Archiving
+- Static website hosting
+- Media storage (images/videos)
+- Data lakes
+- Big data analytics
+- Software distribution
+- Hybrid cloud storage
+
+---
+
+# S3 Basics
+
+## Bucket
+
+A bucket is:
+
+```text
+A container for objects/files
+```
+
+Similar to:
+
+```text
+Top-level folder
+```
+
+---
+
+# Important Exam Point
+
+```text
+Buckets are created in a Region
+```
+
+Example:
+
+```text
+Mumbai Bucket
+Singapore Bucket
+```
+
+---
+
+# Object
+
+An object is:
+
+```text
+A file stored in S3
+```
+
+Examples:
+
+- image.jpg
+- video.mp4
+- report.pdf
+
+---
+
+# Bucket vs Object
+
+```text
+Bucket
+  └── Object
+```
+
+Example:
+
+```text
+my-bucket
+  └── invoice.pdf
+```
+
+---
+
+# Object Key
+
+The key is:
+
+```text
+Full path of the file
+```
+
+Example:
+
+```text
+documents/2025/report.pdf
+```
+
+---
+
+# Key Structure
+
+```text
+Prefix + Object Name
+```
+
+Example:
+
+```text
+documents/2025/    ← Prefix
+
+report.pdf         ← Object Name
+```
+
+---
+
+# Important Concept
+
+S3 does NOT really have folders.
+
+Everything is:
+
+```text
+A key (string)
+```
+
+The console only makes it look like folders exist.
+
+---
+
+# Example
+
+```text
+documents/2025/report.pdf
+```
+
+is simply one object key.
+
+---
+
+# Object Size Limits
+
+Maximum object size:
+
+```text
+50 TB
+```
+
+---
+
+# Multipart Upload
+
+Required when file size exceeds:
+
+```text
+5 GB
+```
+
+Large files are uploaded in multiple chunks.
+
+---
+
+# Example
+
+```text
+20 GB file
+   ↓
+Upload in parts
+   ↓
+S3 combines them
+```
+
+---
+
+# Object Metadata
+
+Objects can contain:
+
+```text
+Key-Value metadata
+```
+
+Example:
+
+```text
+Author = Nishant
+Environment = Prod
+```
+
+---
+
+# Object Tags
+
+Can add:
+
+```text
+Up to 10 tags
+```
+
+Used for:
+
+- lifecycle policies
+- security
+- automation
+- cost allocation
+
+---
+
+# Version ID
+
+Available when:
+
+```text
+Versioning is enabled
+```
+
+Allows multiple versions of same file.
+
+---
+
+# Azure Mapping
+
+| AWS | Azure |
+|---|---|
+| S3 Bucket | Blob Container |
+| S3 Object | Blob |
+| Object Key | Blob Path |
+| Metadata | Blob Metadata |
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|---|---|
+| S3 | Object Storage |
+| Bucket | Container |
+| Object | File |
+| Key | Full path |
+| Max Object Size | 5 TB |
+| Multipart Upload | Required > 5 GB |
+| Metadata | Key-Value pairs |
+| Tags | Up to 10 |
+| Version ID | Requires versioning |
+
+---
+
+# Mental Model
+
+```text
+S3 Bucket
+    ↓
+Folders (visual only)
+    ↓
+Objects (files)
+```
+
+Example:
+
+```text
+my-bucket
+ └── images/
+      └── car.jpg
+```
+
+Actual key:
+
+```text
+images/car.jpg
+```
+
+---
+
+# One-Line Revision
+
+> Amazon S3 is AWS's highly scalable object storage service where files (objects) are stored inside buckets and identified by unique object keys.
+
+- ![alt text](image-191.png)
+- ![alt text](image-192.png)
+
+
+# Amazon S3 Security — Key Points
+
+# 1. IAM Policies (User-Based Security)
+
+Controls:
+
+```text
+Who can perform which S3 API actions
+```
+
+Examples:
+
+- GetObject
+- PutObject
+- DeleteObject
+
+---
+
+# Example
+
+```text
+IAM User
+   ↓
+IAM Policy
+   ↓
+S3 Bucket Access
+```
+
+---
+
+# 2. Bucket Policies (Resource-Based Security)
+
+Most common S3 security mechanism.
+
+Applied directly to:
+
+```text
+S3 Bucket
+```
+
+---
+
+# Common Use Cases
+
+- Make bucket public
+- Cross-account access
+- Enforce encryption
+- Grant access to specific users
+
+---
+
+# Bucket Policies are JSON
+
+Example:
+
+```json
+{
+  "Effect": "Allow",
+  "Principal": "*",
+  "Action": "s3:GetObject",
+  "Resource": "arn:aws:s3:::mybucket/*"
+}
+```
+
+Meaning:
+
+```text
+Anyone can read objects from bucket
+```
+
+(public bucket)
+
+---
+
+# Important Fields
+
+| Field | Meaning |
+|---------|---------|
+| Principal | Who gets access |
+| Action | What they can do |
+| Resource | Which bucket/object |
+| Effect | Allow or Deny |
+
+---
+
+# 3. ACLs (Legacy)
+
+Types:
+
+- Object ACL
+- Bucket ACL
+
+---
+
+# Important Exam Point
+
+```text
+Use Bucket Policies
+```
+
+ACLs are older and less commonly used.
+
+---
+
+# How S3 Authorization Works
+
+Access is granted if:
+
+```text
+IAM Policy ALLOWS
+OR
+Bucket Policy ALLOWS
+```
+
+and there is:
+
+```text
+No Explicit DENY
+```
+
+---
+
+# Common Access Scenarios
+
+## Public Access
+
+```text
+Internet User
+    ↓
+Bucket Policy
+    ↓
+S3 Object
+```
+
+---
+
+## IAM User Access
+
+```text
+IAM User
+    ↓
+IAM Policy
+    ↓
+S3 Bucket
+```
+
+---
+
+## EC2 Access
+
+```text
+EC2
+   ↓
+IAM Role
+   ↓
+S3 Bucket
+```
+
+---
+
+# Important Exam Point
+
+For EC2 → S3 access:
+
+```text
+Use IAM Roles
+```
+
+NOT IAM users.
+
+---
+
+## Cross-Account Access
+
+```text
+AWS Account A
+      ↓
+Bucket Policy
+      ↓
+AWS Account B
+```
+
+Requires:
+
+```text
+Bucket Policy
+```
+
+---
+
+# Block Public Access
+
+Extra AWS safety feature.
+
+---
+
+# Purpose
+
+Prevent accidental:
+
+```text
+Data leaks
+```
+
+---
+
+# Behavior
+
+Even if bucket policy says:
+
+```text
+Public Access Allowed
+```
+
+AWS can still block it if:
+
+```text
+Block Public Access = Enabled
+```
+
+---
+
+# Scope
+
+Can be enabled:
+
+- Per bucket
+- Entire AWS account
+
+---
+
+# Encryption
+
+Another security layer.
+
+Objects can be encrypted using:
+
+```text
+Encryption Keys (KMS, etc.)
+```
+
+---
+
+# Azure Mapping
+
+| AWS | Azure |
+|---|---|
+| Bucket Policy | Storage Account IAM / Access Policies |
+| IAM Role | Managed Identity |
+| S3 Bucket | Blob Container |
+| Block Public Access | Public Access Disabled |
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| IAM Policy | User/Role permissions |
+| Bucket Policy | Bucket-level permissions |
+| ACLs | Legacy |
+| EC2 → S3 | IAM Role |
+| Cross-Account Access | Bucket Policy |
+| Block Public Access | Prevents accidental exposure |
+| Explicit Deny | Always wins |
+
+---
+
+# Mental Model
+
+```text
+IAM User / EC2 Role
+          ↓
+      IAM Policy
+          ↓
+      S3 Bucket
+          ↑
+    Bucket Policy
+```
+
+Access allowed if either policy permits and no explicit deny exists.
+
+---
+
+# One-Line Revision
+
+> S3 security is primarily controlled through IAM Policies, Bucket Policies, encryption, and Block Public Access settings, with Bucket Policies being the most common mechanism for controlling bucket access.
+
+ 
+- ![alt text](image-193.png)
+
+
+# S3 Bucket Policies & Public Access — Key Points
+
+# Goal
+
+Make objects in an S3 bucket:
+
+```text
+Publicly accessible
+```
+
+via URL.
+
+---
+
+# Step 1: Disable Block Public Access
+
+By default:
+
+```text
+S3 blocks public access
+```
+
+To make a bucket public:
+
+```text
+Permissions
+→ Block Public Access
+→ Disable
+```
+
+---
+
+# Important Warning
+
+Only do this if:
+
+```text
+You intentionally want public access
+```
+
+Otherwise you risk:
+
+```text
+Data leaks
+```
+
+---
+
+# Step 2: Add Bucket Policy
+
+Create a Bucket Policy allowing:
+
+```text
+s3:GetObject
+```
+
+---
+
+# Common Public Read Policy
+
+```json
+{
+  "Effect": "Allow",
+  "Principal": "*",
+  "Action": "s3:GetObject",
+  "Resource": "arn:aws:s3:::my-bucket/*"
+}
+```
+
+---
+
+# Important Fields
+
+| Field | Meaning |
+|---------|---------|
+| Principal = "*" | Anyone |
+| Action = GetObject | Read files |
+| Resource = bucket/* | All objects in bucket |
+
+---
+
+# Why Use `/*` ?
+
+Bucket itself:
+
+```text
+arn:aws:s3:::my-bucket
+```
+
+Objects inside bucket:
+
+```text
+arn:aws:s3:::my-bucket/*
+```
+
+`GetObject` applies to:
+
+```text
+Objects
+```
+
+not bucket.
+
+---
+
+# Step 3: Save Policy
+
+After saving:
+
+```text
+Bucket becomes publicly readable
+```
+
+---
+
+# Result
+
+Any object URL becomes accessible:
+
+```text
+https://bucket.s3.amazonaws.com/image.jpg
+```
+
+---
+
+# Example
+
+```text
+coffee.jpg
+```
+
+can be opened directly in browser.
+
+---
+
+# Access Flow
+
+```text
+User
+   ↓
+Object URL
+   ↓
+Bucket Policy Allows Access
+   ↓
+S3 Returns File
+```
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| Block Public Access | Must be disabled first |
+| Bucket Policy | Grants public access |
+| Principal "*" | Everyone |
+| GetObject | Read file |
+| bucket/* | All objects |
+
+---
+
+# Real-World Usage
+
+Common for:
+
+- Static websites
+- Public images
+- Downloadable files
+- Public assets
+
+Not recommended for:
+
+- Customer data
+- Internal documents
+- Sensitive files
+
+---
+
+# Mental Model
+
+```text
+Disable Public Access Block
+          +
+Bucket Policy
+          ↓
+Public S3 Objects
+```
+
+---
+
+# One-Line Revision
+
+> To make S3 objects publicly accessible, disable Block Public Access and add a Bucket Policy allowing `s3:GetObject` on `bucket/*`.
+
+- For example if we just want to give public access to files in a specific folder specify like this
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowReadOnlyDocumentsFolder",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::ntaneja198509/documents/*"
+        }
+    ]
+}
+
+```
+
+# S3 Static Website Hosting — Key Points
+
+# What is it?
+
+Amazon S3 can host:
+
+```text
+Static Websites
+```
+
+Examples:
+
+- HTML
+- CSS
+- JavaScript
+- Images
+
+---
+
+# Important Limitation
+
+S3 can host:
+
+✅ Static content
+
+Cannot host:
+
+❌ .NET APIs  
+❌ Node.js servers  
+❌ Java applications
+
+No server-side execution.
+
+---
+
+# Architecture
+
+```text
+User
+   ↓
+S3 Bucket
+   ↓
+HTML/CSS/JS Files
+```
+
+---
+
+# Enable Static Website Hosting
+
+In bucket settings:
+
+```text
+Properties
+→ Static Website Hosting
+→ Enable
+```
+
+---
+
+# Result
+
+AWS generates a website endpoint:
+
+```text
+http://bucket-name.s3-website-<region>.amazonaws.com
+```
+
+Example:
+
+```text
+http://my-site.s3-website-ap-south-1.amazonaws.com
+```
+
+---
+
+# Important Requirement
+
+Objects must be:
+
+```text
+Publicly readable
+```
+
+Otherwise website won't load.
+
+---
+
+# Required Steps
+
+## 1. Disable Block Public Access
+
+```text
+Permissions
+→ Block Public Access
+→ Off
+```
+
+---
+
+## 2. Add Bucket Policy
+
+Allow:
+
+```json
+{
+  "Effect": "Allow",
+  "Principal": "*",
+  "Action": "s3:GetObject",
+  "Resource": "arn:aws:s3:::my-bucket/*"
+}
+```
+
+---
+
+# Common Error
+
+## 403 Forbidden
+
+Usually means:
+
+```text
+Bucket is NOT public
+```
+
+Check:
+
+- Block Public Access
+- Bucket Policy
+- Object permissions
+
+---
+
+# Real-World Use Cases
+
+- Personal websites
+- Portfolio sites
+- React SPA
+- Angular SPA
+- Vue SPA
+- Documentation sites
+
+---
+
+# Azure Mapping
+
+| AWS | Azure |
+|---|---|
+| S3 Static Website | Azure Blob Static Website |
+| Bucket | Storage Container |
+| Bucket Policy | Storage Access Policy |
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| S3 Static Hosting | Static files only |
+| Public Read Required | Yes |
+| 403 Forbidden | Usually bucket not public |
+| Website Endpoint | Generated by S3 |
+
+---
+
+# Mental Model
+
+```text
+HTML/CSS/JS
+      ↓
+S3 Bucket
+      ↓
+Website Endpoint
+      ↓
+Users
+```
+
+---
+
+# Developer Perspective (.NET)
+
+For your React + .NET architecture:
+
+```text
+React SPA
+    ↓
+S3 Static Website
+
+.NET API
+    ↓
+ECS Fargate / App Runner / EC2
+```
+
+Very common AWS pattern.
+
+---
+
+# One-Line Revision
+
+> S3 Static Website Hosting allows you to host public HTML/CSS/JavaScript websites directly from an S3 bucket, but the bucket and objects must be publicly readable.
+
+
+- ![alt text](image-194.png)
+
+# S3 Versioning — Key Points
+
+# What is Versioning?
+
+Versioning allows S3 to keep:
+
+```text
+Multiple versions of the same file
+```
+
+instead of overwriting it.
+
+---
+
+# Without Versioning
+
+```text
+report.pdf (v1)
+
+Upload new report.pdf
+
+Result:
+report.pdf (v1 lost)
+```
+
+---
+
+# With Versioning
+
+```text
+report.pdf (v1)
+
+Upload new report.pdf
+
+Result:
+report.pdf (v1)
+report.pdf (v2)
+```
+
+Both versions are preserved.
+
+---
+
+# How It Works
+
+```text
+Bucket
+  ↓
+Versioning Enabled
+  ↓
+Every upload gets a Version ID
+```
+
+Example:
+
+```text
+index.html (Version 1)
+
+index.html (Version 2)
+
+index.html (Version 3)
+```
+
+---
+
+# Benefits
+
+## Protection Against Accidental Deletes
+
+Deleting an object does NOT immediately remove it.
+
+Instead S3 adds:
+
+```text
+Delete Marker
+```
+
+The old versions still exist.
+
+---
+
+# Example
+
+```text
+file.txt (v1)
+file.txt (v2)
+
+Delete file.txt
+```
+
+Result:
+
+```text
+Delete Marker
+file.txt (v2)
+file.txt (v1)
+```
+
+You can still recover the file.
+
+---
+
+## Easy Rollback
+
+If deployment goes wrong:
+
+```text
+index.html (v3 broken)
+```
+
+Simply restore:
+
+```text
+index.html (v2)
+```
+
+---
+
+# Common Use Case
+
+Static website deployment:
+
+```text
+Upload new index.html
+```
+
+Bug found?
+
+```text
+Rollback to previous version
+```
+
+No need to re-upload.
+
+---
+
+# Important Notes
+
+## Existing Objects
+
+Objects uploaded BEFORE versioning was enabled get:
+
+```text
+Version ID = null
+```
+
+---
+
+## Suspending Versioning
+
+If you disable/suspend versioning:
+
+```text
+Old versions remain
+```
+
+AWS does NOT delete them.
+
+---
+
+# Azure Comparison
+
+| AWS | Azure |
+|------|--------|
+| S3 Versioning | Blob Versioning |
+| Delete Marker | Soft Delete |
+| Rollback | Restore Previous Version |
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| Versioning | Bucket-level setting |
+| Every upload | New Version ID |
+| Delete | Creates delete marker |
+| Rollback | Easy |
+| Existing files before enablement | Version = null |
+| Suspend versioning | Old versions stay |
+
+---
+
+# Real-World Example
+
+```text
+index.html v1
+      ↓
+Deploy new site
+      ↓
+index.html v2
+      ↓
+Production bug
+      ↓
+Restore v1
+```
+
+---
+
+# Mental Model
+
+```text
+Same Filename
+      ↓
+Multiple Versions Stored
+      ↓
+Restore Any Previous Version
+```
+
+---
+
+# One-Line Revision
+
+> S3 Versioning protects against accidental overwrites and deletes by storing multiple versions of an object, allowing easy recovery and rollback.
+
+
+# S3 Replication (CRR & SRR) — Key Points
+
+# What is S3 Replication?
+
+Automatically copies objects from:
+
+```text
+Source Bucket
+      ↓
+Destination Bucket
+```
+
+---
+
+# Types of Replication
+
+## CRR (Cross-Region Replication)
+
+```text
+Mumbai Bucket
+      ↓
+Singapore Bucket
+```
+
+Different AWS regions.
+
+---
+
+## SRR (Same-Region Replication)
+
+```text
+Mumbai Bucket
+      ↓
+Another Mumbai Bucket
+```
+
+Same AWS region.
+
+---
+
+# Requirements
+
+## 1. Versioning Must Be Enabled
+
+Required on:
+
+```text
+Source Bucket
+AND
+Destination Bucket
+```
+
+No versioning → No replication.
+
+---
+
+## 2. IAM Permissions
+
+S3 service must have permission to:
+
+```text
+Read Source Bucket
+Write Destination Bucket
+```
+
+AWS creates the required IAM role.
+
+---
+
+# Replication Behavior
+
+Replication is:
+
+```text
+Asynchronous
+```
+
+Meaning:
+
+```text
+Upload File
+      ↓
+Replication Happens Later
+```
+
+Not instant.
+
+---
+
+# Example
+
+```text
+Upload:
+documents/report.pdf
+```
+
+to:
+
+```text
+Mumbai Bucket
+```
+
+A few moments later:
+
+```text
+documents/report.pdf
+```
+
+appears in:
+
+```text
+Singapore Bucket
+```
+
+---
+
+# Cross-Account Replication
+
+Supported.
+
+Example:
+
+```text
+AWS Account A
+      ↓
+Replicate
+      ↓
+AWS Account B
+```
+
+Useful for backup and compliance.
+
+---
+
+# CRR Use Cases
+
+## Disaster Recovery
+
+```text
+Mumbai Region Down
+      ↓
+Data Still Exists
+      ↓
+Singapore Region
+```
+
+---
+
+## Lower Latency
+
+Users in another region can access data faster.
+
+---
+
+## Compliance
+
+Store copies in multiple regions.
+
+---
+
+## Cross-Account Backup
+
+Separate production and backup accounts.
+
+---
+
+# SRR Use Cases
+
+## Log Aggregation
+
+```text
+Bucket A Logs
+Bucket B Logs
+Bucket C Logs
+      ↓
+Central Logging Bucket
+```
+
+---
+
+## Production → Test
+
+```text
+Prod Bucket
+      ↓
+Replicate
+      ↓
+Test Bucket
+```
+
+---
+
+# Azure Comparison
+
+| AWS | Azure |
+|------|--------|
+| CRR | Geo-Replication |
+| SRR | Same-Region Replication |
+| S3 Replication | Blob Replication |
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| CRR | Different regions |
+| SRR | Same region |
+| Versioning | Mandatory |
+| Replication | Asynchronous |
+| Cross-Account | Supported |
+| IAM Permissions | Required |
+
+---
+
+# Mental Model
+
+## CRR
+
+```text
+Mumbai
+   ↓
+Singapore
+```
+
+Disaster recovery.
+
+---
+
+## SRR
+
+```text
+Prod Bucket
+    ↓
+Test Bucket
+```
+
+Same region.
+
+---
+
+# One-Line Revision
+
+> S3 Replication automatically copies objects between buckets, requires versioning on both buckets, and supports either same-region (SRR) or cross-region (CRR) replication.
+
+- ![alt text](image-195.png)
+
+- ![alt text](image-196.png)
+
+
+# S3 Replication (Hands-On) — Key Points
+
+# Setup Requirements
+
+Before replication works:
+
+✅ Source bucket versioning enabled  
+✅ Destination bucket versioning enabled
+
+---
+
+# Create Replication Rule
+
+Navigate:
+
+```text
+Bucket
+→ Management
+→ Replication Rules
+→ Create Rule
+```
+
+Choose:
+
+```text
+Source Bucket
+↓
+Destination Bucket
+```
+
+---
+
+# CRR Example
+
+```text
+Source:
+eu-west-1
+
+Destination:
+us-east-1
+```
+
+Result:
+
+```text
+Cross Region Replication (CRR)
+```
+
+---
+
+# IAM Role Required
+
+AWS automatically creates an IAM role so S3 can:
+
+```text
+Read Source Bucket
+Write Destination Bucket
+```
+
+---
+
+# Important Exam Point
+
+Replication only applies to:
+
+```text
+NEW uploads
+```
+
+after replication is enabled.
+
+---
+
+# Existing Files
+
+Example:
+
+```text
+beach.jpg
+```
+
+uploaded before replication.
+
+It will:
+
+```text
+NOT be replicated automatically
+```
+
+---
+
+# To Replicate Existing Files
+
+Use:
+
+```text
+S3 Batch Replication
+```
+
+(or Batch Operations)
+
+---
+
+# Replication Flow
+
+```text
+Upload coffee.jpg
+       ↓
+Source Bucket
+       ↓
+Replication Rule
+       ↓
+Destination Bucket
+```
+
+---
+
+# Asynchronous
+
+Replication happens:
+
+```text
+In Background
+```
+
+May take a few seconds.
+
+Not instant.
+
+---
+
+# Version IDs are Replicated
+
+Source:
+
+```text
+coffee.jpg
+Version = ABC123
+```
+
+Destination:
+
+```text
+coffee.jpg
+Version = ABC123
+```
+
+Same version ID.
+
+---
+
+# Delete Marker Replication
+
+Can be enabled.
+
+---
+
+# Example
+
+Delete:
+
+```text
+coffee.jpg
+```
+
+in source bucket.
+
+S3 creates:
+
+```text
+Delete Marker
+```
+
+If delete marker replication is enabled:
+
+```text
+Delete Marker
+      ↓
+Replicated
+      ↓
+Destination Bucket
+```
+
+Object disappears in both buckets.
+
+---
+
+# Important Exam Point
+
+## Delete Marker
+
+Replicated:
+
+```text
+YES
+```
+
+if enabled.
+
+---
+
+## Permanent Delete
+
+Replicated:
+
+```text
+NO
+```
+
+---
+
+# Example
+
+Delete specific version:
+
+```text
+beach.jpg (Version A)
+```
+
+This is:
+
+```text
+Permanent Delete
+```
+
+and is NOT replicated.
+
+Destination object remains.
+
+---
+
+# What Gets Replicated?
+
+| Action | Replicated? |
+|----------|----------|
+| New Upload | Yes |
+| New Version | Yes |
+| Delete Marker | Yes (if enabled) |
+| Permanent Delete | No |
+
+---
+
+# Azure Comparison
+
+| AWS | Azure |
+|------|--------|
+| CRR | Geo-Replication |
+| SRR | Same Region Replication |
+| S3 Batch Replication | Blob Copy / Replication Jobs |
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| Versioning | Mandatory |
+| Existing Objects | Not replicated automatically |
+| New Objects | Replicated |
+| Replication | Asynchronous |
+| Delete Marker | Can be replicated |
+| Permanent Delete | Never replicated |
+
+---
+
+# Mental Model
+
+```text
+New Upload
+      ↓
+Replicated
+
+Delete Marker
+      ↓
+Replicated
+
+Permanent Delete
+      ↓
+NOT Replicated
+```
+
+---
+
+# One-Line Revision
+
+> S3 Replication copies new object versions asynchronously between versioned buckets, can replicate delete markers, but does not replicate permanent deletes or existing files unless Batch Replication is used.
+
+# S3 Storage Classes — Key Points
+
+# Two Concepts First
+
+## Durability
+
+How likely AWS is to lose your data.
+
+For all S3 storage classes:
+
+```text
+99.999999999% (11 nines)
+```
+
+Very durable.
+
+---
+
+## Availability
+
+How often data is accessible.
+
+Example:
+
+```text
+99.99%
+```
+
+means small downtime is acceptable.
+
+---
+
+# 1. S3 Standard
+
+Default storage class.
+
+---
+
+## Characteristics
+
+✅ Frequently accessed data  
+✅ Low latency  
+✅ High throughput
+
+---
+
+## Use Cases
+
+- Websites
+- Mobile apps
+- Images
+- Videos
+- Big Data
+
+---
+
+# Mental Model
+
+```text
+Access frequently?
+→ S3 Standard
+```
+
+---
+
+# 2. S3 Standard-IA
+
+IA = Infrequent Access
+
+---
+
+## Characteristics
+
+✅ Cheaper storage
+
+❌ Retrieval cost
+
+---
+
+## Use Cases
+
+- Backups
+- Disaster Recovery
+
+---
+
+# Mental Model
+
+```text
+Rarely accessed
+But need it immediately
+→ Standard-IA
+```
+
+---
+
+# 3. S3 One Zone-IA
+
+Same as Standard-IA but:
+
+```text
+Stored in ONE AZ only
+```
+
+---
+
+## Characteristics
+
+✅ Cheapest IA storage
+
+❌ Lose AZ → Lose data
+
+---
+
+## Use Cases
+
+- Secondary backups
+- Re-creatable data
+
+---
+
+# Mental Model
+
+```text
+Can recreate data?
+→ One Zone IA
+```
+
+---
+
+# 4. Glacier Instant Retrieval
+
+Archive storage.
+
+---
+
+## Characteristics
+
+✅ Very cheap
+
+✅ Millisecond retrieval
+
+❌ Minimum storage 90 days
+
+---
+
+## Use Case
+
+```text
+Access once per quarter
+```
+
+but need it immediately.
+
+---
+
+# Mental Model
+
+```text
+Archive + Instant Access
+```
+
+---
+
+# 5. Glacier Flexible Retrieval
+
+Formerly:
+
+```text
+Amazon Glacier
+```
+
+---
+
+## Retrieval Options
+
+| Mode | Retrieval Time |
+|--------|--------|
+| Expedited | 1-5 min |
+| Standard | 3-5 hrs |
+| Bulk | 5-12 hrs |
+
+---
+
+## Use Case
+
+Long-term backup.
+
+---
+
+# Mental Model
+
+```text
+Archive
++
+Can wait a few hours
+```
+
+---
+
+# 6. Glacier Deep Archive
+
+Cheapest storage.
+
+---
+
+## Retrieval Times
+
+| Mode | Retrieval Time |
+|--------|--------|
+| Standard | 12 hrs |
+| Bulk | 48 hrs |
+
+---
+
+## Minimum Storage
+
+```text
+180 days
+```
+
+---
+
+## Use Cases
+
+- Legal records
+- Compliance
+- Historical archives
+
+---
+
+# Mental Model
+
+```text
+Need data?
+Come back tomorrow 😄
+```
+
+---
+
+# 7. Intelligent Tiering
+
+AWS automatically moves files between tiers.
+
+---
+
+## Characteristics
+
+✅ Automatic optimization
+
+✅ No retrieval charges
+
+❌ Small monitoring fee
+
+---
+
+## Example
+
+```text
+Access frequently
+    ↓
+Standard Tier
+
+No access for 30 days
+    ↓
+IA Tier
+
+No access for 90 days
+    ↓
+Archive Tier
+```
+
+---
+
+# Best Option When Unsure
+
+```text
+Intelligent Tiering
+```
+
+AWS handles optimization.
+
+---
+
+# Exam Cheat Sheet
+
+| Storage Class | When To Use |
+|---------------|------------|
+| Standard | Frequently accessed |
+| Standard-IA | Rarely accessed, instant retrieval |
+| One Zone-IA | Re-creatable data |
+| Glacier Instant | Archive + instant access |
+| Glacier Flexible | Archive + wait hours |
+| Glacier Deep Archive | Cheapest, wait days |
+| Intelligent Tiering | AWS decides automatically |
+
+---
+
+# Azure Comparison
+
+| AWS | Azure |
+|------|--------|
+| Standard | Hot Tier |
+| Standard-IA | Cool Tier |
+| Glacier | Archive Tier |
+| Intelligent Tiering | Lifecycle Management |
+
+---
+
+# Quick Decision Tree
+
+```text
+Need frequent access?
+    ↓
+S3 Standard
+
+Need rare access?
+    ↓
+Standard-IA
+
+Need archive?
+    ↓
+Glacier
+
+Need AWS to decide?
+    ↓
+Intelligent Tiering
+```
+
+---
+
+# One-Line Revision
+
+> S3 Storage Classes trade off cost, availability, and retrieval speed, with Glacier classes for archival storage and Intelligent Tiering automatically optimizing storage costs.
+
+# S3 Storage Classes (Hands-On) — Key Points
+
+# Assign Storage Class During Upload
+
+When uploading a file:
+
+```text
+Upload File
+   ↓
+Properties
+   ↓
+Storage Class
+```
+
+Choose:
+
+- Standard
+- Intelligent Tiering
+- Standard-IA
+- One Zone-IA
+- Glacier Instant Retrieval
+- Glacier Flexible Retrieval
+- Glacier Deep Archive
+
+---
+
+# Example
+
+Upload:
+
+```text
+coffee.jpg
+```
+
+Choose:
+
+```text
+Standard-IA
+```
+
+Result:
+
+```text
+coffee.jpg
+Storage Class = Standard-IA
+```
+
+---
+
+# Change Storage Class Later
+
+You don't have to re-upload.
+
+Navigate:
+
+```text
+Object
+→ Properties
+→ Storage Class
+→ Edit
+```
+
+Example:
+
+```text
+Standard-IA
+    ↓
+One Zone-IA
+```
+
+or
+
+```text
+One Zone-IA
+    ↓
+Glacier Instant Retrieval
+```
+
+---
+
+# Common Real-World Flow
+
+```text
+New File
+    ↓
+Standard
+
+30 Days Old
+    ↓
+Standard-IA
+
+180 Days Old
+    ↓
+Glacier
+
+Years Old
+    ↓
+Deep Archive
+```
+
+---
+
+# Lifecycle Rules
+
+Automatically move files between storage classes.
+
+Navigate:
+
+```text
+Bucket
+→ Management
+→ Lifecycle Rules
+```
+
+---
+
+# Example Lifecycle Rule
+
+```text
+Day 0
+   ↓
+Standard
+
+Day 30
+   ↓
+Standard-IA
+
+Day 180
+   ↓
+Glacier Flexible Retrieval
+
+Day 365
+   ↓
+Deep Archive
+```
+
+AWS performs transitions automatically.
+
+---
+
+# Why Lifecycle Rules Matter
+
+Without lifecycle:
+
+```text
+Manual management
+```
+
+With lifecycle:
+
+```text
+Automatic cost optimization
+```
+
+---
+
+# Example
+
+Your application uploads:
+
+```text
+Invoices
+Logs
+Documents
+Images
+```
+
+You don't touch them again.
+
+Lifecycle Rule:
+
+```text
+30 Days → IA
+180 Days → Glacier
+```
+
+AWS saves storage costs automatically.
+
+---
+
+# Intelligent Tiering Alternative
+
+Instead of creating lifecycle rules:
+
+```text
+Intelligent Tiering
+```
+
+AWS monitors access patterns and moves files automatically.
+
+---
+
+# Lifecycle vs Intelligent Tiering
+
+| Lifecycle | Intelligent Tiering |
+|------------|--------------------|
+| You define rules | AWS decides |
+| No monitoring fee | Small monitoring fee |
+| Predictable | Automatic |
+
+---
+
+# Exam Tips
+
+## Manual Change
+
+```text
+Object → Properties → Storage Class
+```
+
+---
+
+## Automatic Change
+
+```text
+Lifecycle Rules
+```
+
+---
+
+## AWS Automatically Decides
+
+```text
+Intelligent Tiering
+```
+
+---
+
+# Azure Comparison
+
+| AWS | Azure |
+|------|--------|
+| Lifecycle Rules | Lifecycle Management |
+| Standard-IA | Cool Tier |
+| Glacier | Archive Tier |
+| Intelligent Tiering | Automatic Tiering |
+
+---
+
+# Mental Model
+
+```text
+Hot Data
+    ↓
+Warm Data
+    ↓
+Cold Data
+    ↓
+Archive Data
+```
+
+Using:
+
+```text
+Lifecycle Rules
+```
+
+or
+
+```text
+Intelligent Tiering
+```
+
+---
+
+# One-Line Revision
+
+> Storage classes can be assigned during upload, changed later, or automatically transitioned using Lifecycle Rules to reduce storage costs over time.
+
+
+# EC2 Instance Metadata Service (IMDS) — Key Points
+
+# What is IMDS?
+
+A special service available inside every EC2 instance.
+
+Allows the EC2 instance to learn about itself.
+
+---
+
+# Special URL
+
+```text
+http://169.254.169.254
+```
+
+Only accessible from inside the EC2 instance.
+
+---
+
+# What Can You Get?
+
+## Instance Information
+
+```text
+Instance ID
+Public IP
+Private IP
+Hostname
+Availability Zone
+Region
+AMI ID
+```
+
+---
+
+## IAM Information
+
+```text
+IAM Role Name
+Temporary AWS Credentials
+```
+
+---
+
+# Why is it Useful?
+
+Your application can discover information dynamically.
+
+Example:
+
+```csharp
+var region = GetRegionFromMetadata();
+```
+
+instead of hardcoding:
+
+```csharp
+var region = "us-east-1";
+```
+
+---
+
+# Real World Example
+
+A .NET API running on EC2 wants to know:
+
+```text
+Which AWS Region am I running in?
+```
+
+It calls IMDS.
+
+---
+
+# User Data vs Metadata
+
+## Metadata
+
+Information about EC2 itself.
+
+Examples:
+
+```text
+Instance ID
+Private IP
+Region
+```
+
+---
+
+## User Data
+
+The startup script executed during launch.
+
+Example:
+
+```bash
+#!/bin/bash
+apt-get install nginx
+```
+
+---
+
+# IMDSv1
+
+Old version.
+
+Very simple.
+
+```text
+EC2
+ ↓
+GET Request
+ ↓
+Metadata Returned
+```
+
+Single API call.
+
+---
+
+# IMDSv2
+
+New and more secure version.
+
+Default today.
+
+---
+
+# Step 1
+
+Request a token.
+
+```text
+PUT Request
+```
+
+Receive:
+
+```text
+Session Token
+```
+
+---
+
+# Step 2
+
+Use token to access metadata.
+
+```text
+GET Request
++
+Token Header
+```
+
+---
+
+# Why IMDSv2?
+
+Security.
+
+Prevents attacks where applications accidentally expose metadata.
+
+---
+
+# Simplified Flow
+
+```text
+EC2
+ ↓
+Request Token
+ ↓
+Receive Token
+ ↓
+Request Metadata
+ ↓
+Receive Metadata
+```
+
+---
+
+# Example (C# Conceptually)
+
+```csharp
+// Get token
+
+var token = GetImdsToken();
+
+// Use token
+
+var instanceId = GetInstanceId(token);
+```
+
+AWS SDKs often handle this automatically.
+
+---
+
+# Common Developer Use Cases
+
+## Discover Region
+
+```csharp
+var region = GetCurrentRegion();
+```
+
+---
+
+## Discover Instance ID
+
+```csharp
+var instanceId = GetInstanceId();
+```
+
+---
+
+## Obtain Temporary AWS Credentials
+
+```csharp
+AWS SDK
+   ↓
+IMDS
+   ↓
+IAM Role Credentials
+```
+
+No secrets stored in code.
+
+---
+
+# Azure Comparison
+
+| AWS | Azure |
+|------|--------|
+| IMDS | Azure Instance Metadata Service |
+| IAM Role Credentials | Managed Identity |
+| Instance Metadata | VM Metadata |
+
+Very similar concept.
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| IMDS URL | 169.254.169.254 |
+| Purpose | EC2 learns about itself |
+| IAM Role Credentials | Available through IMDS |
+| IMDSv1 | Direct access |
+| IMDSv2 | Token-based |
+| More Secure | IMDSv2 |
+
+---
+
+# Mental Model
+
+```text
+EC2
+ ↓
+"Who am I?"
+ ↓
+IMDS
+ ↓
+Returns metadata
+```
+
+---
+
+# One-Line Revision
+
+> IMDS is a special service inside EC2 that exposes instance metadata and IAM role credentials, with IMDSv2 using a token-based approach for improved security.
+
+# EC2 Instance Metadata Service (Hands-On) — Key Points
+
+# What Was Demonstrated?
+
+An EC2 instance can query:
+
+```text
+http://169.254.169.254
+```
+
+to get information about itself.
+
+---
+
+# IMDSv1 vs IMDSv2
+
+## IMDSv1
+
+Simple:
+
+```bash
+curl metadata-url
+```
+
+Works directly.
+
+---
+
+## IMDSv2 (Current Default)
+
+Requires:
+
+### Step 1
+
+Get token.
+
+```bash
+PUT Request
+```
+
+Returns:
+
+```text
+Session Token
+```
+
+---
+
+### Step 2
+
+Use token in metadata requests.
+
+```bash
+GET Request
++
+Token Header
+```
+
+---
+
+# Why IMDSv2?
+
+More secure.
+
+Protects against metadata theft attacks.
+
+---
+
+# Example Metadata Available
+
+## Hostname
+
+```text
+ip-172-31-x-x
+```
+
+---
+
+## Private IP
+
+```text
+172.31.x.x
+```
+
+---
+
+## Public IP
+
+```text
+xx.xx.xx.xx
+```
+
+---
+
+## Instance ID
+
+```text
+i-123456789
+```
+
+---
+
+## Availability Zone
+
+```text
+ap-south-1a
+```
+
+---
+
+# Trailing Slash Rule
+
+When you see:
+
+```text
+metadata/
+```
+
+it means:
+
+```text
+More data available
+```
+
+Like a directory.
+
+---
+
+Example:
+
+```text
+metadata/
+  hostname
+  local-ipv4
+  instance-id
+```
+
+---
+
+# IAM Role Credentials
+
+Very important.
+
+---
+
+## Without IAM Role
+
+Query:
+
+```text
+security-credentials/
+```
+
+Returns:
+
+```text
+Not Found
+```
+
+Because no role attached.
+
+---
+
+## With IAM Role
+
+Attach role to EC2.
+
+Now query:
+
+```text
+security-credentials/
+```
+
+Returns:
+
+```json
+{
+  "AccessKeyId": "...",
+  "SecretAccessKey": "...",
+  "Token": "..."
+}
+```
+
+---
+
+# How AWS SDK Works
+
+You usually never write this code.
+
+Example:
+
+```csharp
+var s3Client = new AmazonS3Client();
+```
+
+No credentials provided.
+
+---
+
+AWS SDK automatically:
+
+```text
+EC2
+ ↓
+IMDS
+ ↓
+Gets Temporary Credentials
+ ↓
+Calls AWS APIs
+```
+
+---
+
+# Real Example
+
+Your .NET API runs on EC2.
+
+Needs access to S3.
+
+You attach:
+
+```text
+IAM Role
+```
+
+to EC2.
+
+Then in code:
+
+```csharp
+var s3 = new AmazonS3Client();
+```
+
+No:
+
+```csharp
+AccessKey
+SecretKey
+```
+
+needed.
+
+SDK fetches credentials from IMDS automatically.
+
+---
+
+# Key Exam Point
+
+## EC2 IAM Roles Work Because Of IMDS
+
+```text
+IAM Role
+     ↓
+Temporary Credentials
+     ↓
+IMDS
+     ↓
+AWS SDK
+```
+
+This is the hidden magic.
+
+---
+
+# Azure Comparison
+
+AWS:
+
+```text
+EC2
+ ↓
+IMDS
+ ↓
+IAM Role Credentials
+```
+
+Azure:
+
+```text
+VM
+ ↓
+Managed Identity Endpoint
+ ↓
+Access Token
+```
+
+Very similar concept.
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| Metadata URL | 169.254.169.254 |
+| IMDSv2 | Token required |
+| IMDSv1 | Direct access |
+| IAM Credentials | Available through IMDS |
+| AWS SDK | Uses IMDS automatically |
+| No hardcoded secrets | Use IAM Roles |
+
+---
+
+# Mental Model
+
+```text
+EC2 Instance
+      ↓
+"Who am I?"
+      ↓
+IMDS
+      ↓
+Metadata + IAM Credentials
+      ↓
+AWS SDK Uses Them
+```
+
+---
+
+# One-Line Revision
+
+> IMDSv2 allows an EC2 instance to securely retrieve metadata and temporary IAM role credentials, which AWS SDKs automatically use to authenticate AWS API calls without storing secrets.
+
+
+- ![alt text](image-197.png)
+- ![alt text](image-198.png)
+- ![alt text](image-199.png)
+- ![alt text](image-200.png)
+
+
+# AWS CLI Profiles — Key Points
+
+# Problem
+
+You have multiple AWS accounts:
+
+```text
+Personal AWS Account
+Work AWS Account
+Sandbox AWS Account
+Production AWS Account
+```
+
+How does AWS CLI know which one to use?
+
+---
+
+# Solution
+
+Use:
+
+```text
+AWS Profiles
+```
+
+Each profile stores its own:
+
+```text
+Access Key
+Secret Key
+Region
+```
+
+---
+
+# Default Profile
+
+When you run:
+
+```bash
+aws configure
+```
+
+AWS creates:
+
+```text
+default
+```
+
+profile.
+
+Files:
+
+```text
+~/.aws/credentials
+~/.aws/config
+```
+
+---
+
+# Create Another Profile
+
+```bash
+aws configure --profile dev
+```
+
+or
+
+```bash
+aws configure --profile production
+```
+
+---
+
+# Example
+
+```bash
+aws configure --profile work
+```
+
+Provide:
+
+```text
+Access Key
+Secret Key
+Region
+```
+
+AWS stores them separately.
+
+---
+
+# credentials File
+
+Example:
+
+```ini
+[default]
+aws_access_key_id=AAA
+aws_secret_access_key=BBB
+
+[work]
+aws_access_key_id=CCC
+aws_secret_access_key=DDD
+```
+
+---
+
+# config File
+
+Example:
+
+```ini
+[default]
+region=ap-south-1
+
+[profile work]
+region=us-west-2
+```
+
+---
+
+# Using a Profile
+
+Default:
+
+```bash
+aws s3 ls
+```
+
+Uses:
+
+```text
+default profile
+```
+
+---
+
+# Use Specific Profile
+
+```bash
+aws s3 ls --profile work
+```
+
+Uses:
+
+```text
+work profile
+```
+
+---
+
+# Real-World Example
+
+You have:
+
+```text
+Personal Account
+Production Account
+```
+
+Configure:
+
+```bash
+aws configure --profile personal
+aws configure --profile prod
+```
+
+Then:
+
+```bash
+aws s3 ls --profile personal
+```
+
+or
+
+```bash
+aws s3 ls --profile prod
+```
+
+No need to constantly change credentials.
+
+---
+
+# Developer Workflow
+
+For a .NET developer:
+
+```text
+dev
+qa
+uat
+prod
+```
+
+Each environment can have:
+
+```text
+Separate AWS Account
+Separate Profile
+```
+
+---
+
+# Example
+
+```bash
+aws ecs list-clusters --profile dev
+
+aws ecs list-clusters --profile prod
+```
+
+Same command.
+
+Different AWS accounts.
+
+---
+
+# How AWS SDK Uses Profiles
+
+C# example:
+
+```csharp
+var credentials =
+    new StoredProfileAWSCredentials("dev");
+```
+
+SDK loads credentials from:
+
+```text
+~/.aws/credentials
+```
+
+---
+
+# Important Exam Point
+
+❌ Not needed for AWS Developer Associate exam.
+
+✅ Extremely useful in real-world development.
+
+---
+
+# Azure Comparison
+
+AWS:
+
+```text
+CLI Profiles
+```
+
+Azure:
+
+```text
+az login
+az account set
+```
+
+Both allow switching between subscriptions/accounts.
+
+---
+
+# Important Commands
+
+Create profile:
+
+```bash
+aws configure --profile dev
+```
+
+---
+
+Use profile:
+
+```bash
+aws s3 ls --profile dev
+```
+
+---
+
+List buckets:
+
+```bash
+aws s3 ls --profile prod
+```
+
+---
+
+# Mental Model
+
+```text
+AWS CLI
+     ↓
+Profile
+     ↓
+Credentials
+     ↓
+AWS Account
+```
+
+---
+
+# One-Line Revision
+
+> AWS CLI Profiles allow you to store credentials for multiple AWS accounts and switch between them using the `--profile` parameter.
+
+# MFA with AWS CLI — Key Points
+
+# Problem
+
+You have MFA enabled.
+
+Normal credentials:
+
+```text
+Access Key
+Secret Key
+```
+
+are NOT enough.
+
+You need temporary credentials that prove MFA was used.
+
+---
+
+# Solution
+
+Use AWS STS.
+
+API:
+
+```text
+STS GetSessionToken
+```
+
+This is the exam keyword.
+
+---
+
+# What Does GetSessionToken Do?
+
+You provide:
+
+```text
+MFA Device ARN
+MFA Code
+Duration
+```
+
+AWS returns:
+
+```text
+AccessKeyId
+SecretAccessKey
+SessionToken
+Expiration
+```
+
+These are:
+
+```text
+Temporary Credentials
+```
+
+---
+
+# Flow
+
+```text
+User
+ ↓
+MFA Code
+ ↓
+STS GetSessionToken
+ ↓
+Temporary Credentials
+ ↓
+AWS API Calls
+```
+
+---
+
+# Why Temporary?
+
+More secure.
+
+Credentials automatically expire.
+
+Example:
+
+```text
+1 hour
+12 hours
+36 hours
+```
+
+depending on configuration.
+
+---
+
+# CLI Example
+
+```bash
+aws sts get-session-token
+```
+
+Provide:
+
+```text
+--serial-number
+--token-code
+```
+
+---
+
+# Output
+
+```json
+{
+  "AccessKeyId": "...",
+  "SecretAccessKey": "...",
+  "SessionToken": "...",
+  "Expiration": "..."
+}
+```
+
+---
+
+# How To Use Them
+
+Create a new profile.
+
+```bash
+aws configure --profile mfa
+```
+
+Add:
+
+```text
+Access Key
+Secret Key
+```
+
+Then manually add:
+
+```ini
+aws_session_token=...
+```
+
+to:
+
+```text
+~/.aws/credentials
+```
+
+---
+
+# Result
+
+Now:
+
+```bash
+aws s3 ls --profile mfa
+```
+
+works using MFA-authenticated credentials.
+
+---
+
+# Why Session Token?
+
+Normal profile:
+
+```text
+Access Key
+Secret Key
+```
+
+MFA profile:
+
+```text
+Access Key
+Secret Key
+Session Token
+```
+
+The session token proves MFA verification occurred.
+
+---
+
+# Developer Perspective
+
+Usually you won't manually do this.
+
+Tools like:
+
+```text
+AWS SSO
+AWS Vault
+Okta
+IAM Identity Center
+```
+
+handle it automatically.
+
+But exam questions often use:
+
+```text
+STS GetSessionToken
+```
+
+---
+
+# C# Mental Model
+
+Without MFA:
+
+```csharp
+AccessKey
+SecretKey
+```
+
+---
+
+With MFA:
+
+```csharp
+AccessKey
+SecretKey
+SessionToken
+```
+
+---
+
+# Important Exam Points
+
+| Concept | Remember |
+|----------|----------|
+| MFA + CLI | STS GetSessionToken |
+| Returns | Temporary Credentials |
+| Contains | AccessKey + SecretKey + SessionToken |
+| Credentials Expire | Yes |
+| MFA Device ARN Required | Yes |
+| MFA Code Required | Yes |
+
+---
+
+# Azure Comparison
+
+AWS:
+
+```text
+STS GetSessionToken
+```
+
+Azure:
+
+```text
+Azure AD Token
+```
+
+Both generate temporary authenticated credentials.
+
+---
+
+# Exam Cheat Sheet
+
+Question:
+
+```text
+How do I use MFA with AWS CLI?
+```
+
+Answer:
+
+```text
+STS GetSessionToken
+```
+
+Question:
+
+```text
+What does it return?
+```
+
+Answer:
+
+```text
+Temporary credentials:
+Access Key
+Secret Key
+Session Token
+```
+
+---
+
+# One-Line Revision
+
+> To use MFA with the AWS CLI, call STS `GetSessionToken`, which returns temporary credentials (Access Key, Secret Key, and Session Token) that can be used for AWS API calls.
+
+# AWS SDK Overview
+
+# What is AWS SDK?
+
+SDK = Software Development Kit
+
+Instead of running AWS commands manually using:
+
+```bash
+aws s3 ls
+aws dynamodb scan
+aws lambda invoke
+```
+
+your application can call AWS services directly through code.
+
+Example:
+
+```csharp
+var client = new AmazonS3Client();
+```
+
+This uses the AWS SDK.
+
+---
+
+# Why Use SDK?
+
+Without SDK:
+
+```text
+Application
+    ↓
+CLI Commands
+    ↓
+AWS
+```
+
+With SDK:
+
+```text
+Application
+    ↓
+AWS SDK
+    ↓
+AWS APIs
+```
+
+Much cleaner and faster.
+
+---
+
+# Supported Languages
+
+AWS provides official SDKs for:
+
+```text
+.NET
+Java
+Node.js
+Python
+Go
+PHP
+Ruby
+C++
+```
+
+---
+
+# For You (.NET Developer)
+
+You'll mostly use:
+
+```text
+AWS SDK for .NET
+```
+
+NuGet packages such as:
+
+```bash
+AWSSDK.S3
+AWSSDK.DynamoDBv2
+AWSSDK.SQS
+AWSSDK.Lambda
+```
+
+---
+
+# Example: Upload File to S3
+
+Without SDK:
+
+```bash
+aws s3 cp file.txt s3://mybucket
+```
+
+With C# SDK:
+
+```csharp
+var s3 = new AmazonS3Client();
+
+await s3.PutObjectAsync(new PutObjectRequest
+{
+    BucketName = "mybucket",
+    Key = "file.txt",
+    FilePath = "file.txt"
+});
+```
+
+---
+
+# Example: Read DynamoDB
+
+```csharp
+var dynamoDb = new AmazonDynamoDBClient();
+
+var response = await dynamoDb.GetItemAsync(request);
+```
+
+---
+
+# Example: Send SQS Message
+
+```csharp
+var sqs = new AmazonSQSClient();
+
+await sqs.SendMessageAsync(queueUrl, "Hello");
+```
+
+---
+
+# AWS CLI vs SDK
+
+CLI:
+
+```bash
+aws s3 ls
+```
+
+SDK:
+
+```csharp
+await s3.ListBucketsAsync();
+```
+
+Same AWS API behind the scenes.
+
+---
+
+# Fun Fact
+
+AWS CLI itself is built using:
+
+```text
+Python SDK (Boto3)
+```
+
+So:
+
+```text
+CLI
+   ↓
+Boto3 SDK
+   ↓
+AWS APIs
+```
+
+The CLI is basically a wrapper around the SDK.
+
+---
+
+# Authentication
+
+SDK automatically uses:
+
+```text
+IAM User Credentials
+IAM Role
+Environment Variables
+AWS Profiles
+EC2 Instance Role
+Lambda Execution Role
+```
+
+Example:
+
+```csharp
+var client = new AmazonS3Client();
+```
+
+No credentials required in code if running on EC2/Lambda with IAM Role.
+
+---
+
+# Exam Perspective
+
+Question:
+
+```text
+Your application needs to upload files to S3.
+What should it use?
+```
+
+Answer:
+
+```text
+AWS SDK
+```
+
+---
+
+Question:
+
+```text
+A Lambda function needs to read DynamoDB.
+```
+
+Answer:
+
+```text
+AWS SDK
+```
+
+---
+
+Question:
+
+```text
+A .NET application needs to send SQS messages.
+```
+
+Answer:
+
+```text
+AWS SDK for .NET
+```
+
+---
+
+# C# Mental Model
+
+Think of AWS SDK like:
+
+```csharp
+SqlConnection
+```
+
+for SQL Server.
+
+Instead of:
+
+```csharp
+SqlConnection
+```
+
+you have:
+
+```csharp
+AmazonS3Client
+AmazonDynamoDBClient
+AmazonSQSClient
+AmazonLambdaClient
+```
+
+Each client talks to an AWS service.
+
+---
+
+# Architecture
+
+```text
+.NET Application
+        ↓
+AWS SDK for .NET
+        ↓
+AWS REST APIs
+        ↓
+AWS Services
+```
+
+---
+
+# Exam Cheat Sheet
+
+| Need | Use |
+|--------|------|
+| Call AWS from code | SDK |
+| Call S3 from code | S3 SDK |
+| Call DynamoDB from code | DynamoDB SDK |
+| Call Lambda from code | Lambda SDK |
+| CLI internally uses | Python SDK (Boto3) |
+| Most common .NET package | AWS SDK for .NET |
+
+---
+
+# One-Line Revision
+
+> AWS SDK allows applications to call AWS services programmatically (S3, DynamoDB, SQS, Lambda, etc.) without using the AWS CLI.
+
+# AWS Limits (Quotas)
+
+AWS has limits to prevent abuse and protect services.
+
+There are 2 types:
+
+1. API Rate Limits
+2. Service Quotas
+
+---
+
+# 1. API Rate Limits
+
+Limits how many API requests you can make.
+
+Example:
+
+```text
+EC2 DescribeInstances
+= 100 requests/sec
+```
+
+Example:
+
+```text
+S3 GetObject
+= 5500 GET requests/sec per prefix
+```
+
+---
+
+# What Happens If You Exceed It?
+
+AWS returns:
+
+```text
+ThrottlingException
+RequestLimitExceeded
+TooManyRequestsException
+```
+
+Example:
+
+```csharp
+AmazonServiceException:
+Rate exceeded
+```
+
+---
+
+# Solution: Exponential Backoff
+
+This is a very common AWS exam question.
+
+When you see:
+
+```text
+Throttling
+Rate Limit Exceeded
+Too Many Requests
+```
+
+Think:
+
+```text
+Exponential Backoff
+```
+
+---
+
+# Exponential Backoff
+
+Instead of retrying immediately:
+
+❌ Bad
+
+```text
+Request
+Request
+Request
+Request
+Request
+```
+
+---
+
+✅ Good
+
+```text
+Retry #1 → wait 1 sec
+Retry #2 → wait 2 sec
+Retry #3 → wait 4 sec
+Retry #4 → wait 8 sec
+Retry #5 → wait 16 sec
+```
+
+---
+
+# Why?
+
+Imagine 10,000 clients.
+
+If all retry instantly:
+
+```text
+Server overload
+```
+
+If all wait increasingly longer:
+
+```text
+Load reduces naturally
+```
+
+Server gets time to recover.
+
+---
+
+# C# Example
+
+```csharp
+int delay = 1000;
+
+for(int i = 0; i < 5; i++)
+{
+    try
+    {
+        await client.SomeAwsCallAsync();
+        break;
+    }
+    catch(ThrottlingException)
+    {
+        await Task.Delay(delay);
+        delay *= 2;
+    }
+}
+```
+
+---
+
+# SDK Advantage
+
+Good news:
+
+```text
+AWS SDK already implements retries
+```
+
+Including:
+
+```text
+Exponential Backoff
+```
+
+So usually:
+
+```csharp
+var s3 = new AmazonS3Client();
+```
+
+automatically retries throttled requests.
+
+---
+
+# 2. Service Quotas
+
+These are limits on resources.
+
+Examples:
+
+```text
+EC2 vCPUs
+EBS Volumes
+Elastic IPs
+VPCs
+Lambda Concurrent Executions
+```
+
+---
+
+# Example
+
+Account limit:
+
+```text
+1152 vCPUs
+```
+
+Need:
+
+```text
+2000 vCPUs
+```
+
+Solution:
+
+```text
+Request Service Quota Increase
+```
+
+---
+
+# How To Increase?
+
+AWS Console:
+
+```text
+Service Quotas
+```
+
+or
+
+```text
+Support Ticket
+```
+
+or
+
+```text
+Service Quotas API
+```
+
+---
+
+# Developer Example
+
+Your app suddenly grows.
+
+You launch more EC2 instances.
+
+AWS says:
+
+```text
+Quota exceeded
+```
+
+This is NOT throttling.
+
+This is:
+
+```text
+Service Quota Limit
+```
+
+Request an increase.
+
+---
+
+# Exam Trick
+
+Question:
+
+```text
+Application gets throttling exceptions.
+```
+
+Answer:
+
+```text
+Use Exponential Backoff
+```
+
+---
+
+Question:
+
+```text
+Need more EC2 instances than current limit.
+```
+
+Answer:
+
+```text
+Request Service Quota Increase
+```
+
+---
+
+Question:
+
+```text
+AWS SDK receives throttling responses.
+```
+
+Answer:
+
+```text
+SDK automatically retries using exponential backoff.
+```
+
+---
+
+# Azure Comparison
+
+AWS API Rate Limit:
+
+```text
+ThrottlingException
+```
+
+Azure equivalent:
+
+```text
+HTTP 429 Too Many Requests
+```
+
+Both use:
+
+```text
+Retry + Exponential Backoff
+```
+
+---
+
+# Quick Comparison
+
+| Type | Meaning | Fix |
+|--------|----------|------|
+| API Rate Limit | Too many requests | Exponential Backoff |
+| Service Quota | Too many resources | Request Increase |
+| ThrottlingException | API limit hit | Retry |
+| EC2 vCPU limit reached | Resource quota hit | Increase quota |
+
+---
+
+# Exam Cheat Sheet
+
+When you see:
+
+```text
+ThrottlingException
+Rate Exceeded
+Too Many Requests
+```
+
+Think:
+
+```text
+Exponential Backoff
+```
+
+When you see:
+
+```text
+Cannot create more resources
+Quota Exceeded
+Limit Reached
+```
+
+Think:
+
+```text
+Service Quota Increase
+```
+
+---
+
+# One-Line Revision
+
+> API rate limits cause throttling and are handled using exponential backoff; service quotas limit the number of AWS resources and require a quota increase request.
+
+
+# AWS Request Signing (SigV4)
+
+# Why Do AWS API Calls Need Signing?
+
+When you call an AWS API:
+
+```text
+S3
+DynamoDB
+Lambda
+EC2
+SQS
+```
+
+AWS must know:
+
+```text
+Who are you?
+Are you authenticated?
+Are you authorized?
+```
+
+To prove this, requests are signed.
+
+---
+
+# What Is Used To Sign?
+
+AWS credentials:
+
+```text
+Access Key
+Secret Key
+```
+
+(or temporary credentials from IAM Roles)
+
+---
+
+# Flow
+
+```text
+Application
+      ↓
+Create HTTP Request
+      ↓
+Sign Request (SigV4)
+      ↓
+Send To AWS
+      ↓
+AWS Verifies Signature
+      ↓
+Request Allowed
+```
+
+---
+
+# Signature Version 4 (SigV4)
+
+AWS uses:
+
+```text
+Signature Version 4
+```
+
+Usually called:
+
+```text
+SigV4
+```
+
+This is the exam keyword.
+
+---
+
+# Do We Implement SigV4 Ourselves?
+
+Normally:
+
+```text
+NO
+```
+
+The SDK and CLI handle it automatically.
+
+Example:
+
+```csharp
+var s3 = new AmazonS3Client();
+```
+
+Behind the scenes:
+
+```text
+Create Request
+Sign Request
+Send Request
+```
+
+All automatic.
+
+---
+
+# How Is The Signature Sent?
+
+There are 2 ways.
+
+## 1. Authorization Header
+
+Most common.
+
+```http
+Authorization: AWS4-HMAC-SHA256 ...
+```
+
+Used by:
+
+```text
+AWS SDK
+AWS CLI
+```
+
+---
+
+## 2. Query String
+
+Signature included in URL.
+
+Example:
+
+```text
+https://bucket.s3.amazonaws.com/file.jpg
+?X-Amz-Algorithm=AWS4-HMAC-SHA256
+&X-Amz-Credential=...
+&X-Amz-Signature=...
+```
+
+---
+
+# Important Query Parameters
+
+```text
+X-Amz-Algorithm
+X-Amz-Credential
+X-Amz-Date
+X-Amz-Expires
+X-Amz-Signature
+```
+
+Most important:
+
+```text
+X-Amz-Signature
+```
+
+Contains the actual SigV4 signature.
+
+---
+
+# Pre-Signed URLs
+
+This is where you'll commonly see query-string signatures.
+
+Example:
+
+```text
+Generate download link
+Generate upload link
+Temporary access to private S3 object
+```
+
+---
+
+# Example
+
+Private file:
+
+```text
+s3://documents/report.pdf
+```
+
+User should access it for only:
+
+```text
+15 minutes
+```
+
+Generate:
+
+```text
+Pre-Signed URL
+```
+
+which contains:
+
+```text
+X-Amz-Signature
+```
+
+After expiration:
+
+```text
+403 Forbidden
+```
+
+---
+
+# Public S3 Objects
+
+Exception:
+
+```text
+Public Object
+```
+
+does NOT require signing.
+
+Example:
+
+```text
+https://mybucket.s3.amazonaws.com/logo.png
+```
+
+Anyone can access it.
+
+---
+
+# C# Example (SDK)
+
+```csharp
+var response = await s3.GetObjectAsync(
+    "mybucket",
+    "file.txt");
+```
+
+Behind the scenes:
+
+```text
+Request Created
+Request Signed (SigV4)
+Request Sent
+```
+
+---
+
+# C# Example (Pre-Signed URL)
+
+```csharp
+var request = new GetPreSignedUrlRequest
+{
+    BucketName = "mybucket",
+    Key = "report.pdf",
+    Expires = DateTime.UtcNow.AddMinutes(15)
+};
+
+string url = s3.GetPreSignedURL(request);
+```
+
+Generated URL contains:
+
+```text
+X-Amz-Signature
+```
+
+---
+
+# Exam Perspective
+
+Question:
+
+```text
+How does AWS authenticate API requests?
+```
+
+Answer:
+
+```text
+SigV4 request signing
+```
+
+---
+
+Question:
+
+```text
+What is used to sign requests?
+```
+
+Answer:
+
+```text
+Access Key + Secret Key
+```
+
+---
+
+Question:
+
+```text
+Where can SigV4 signature be transmitted?
+```
+
+Answer:
+
+```text
+Authorization Header
+OR
+Query String (X-Amz-Signature)
+```
+
+---
+
+Question:
+
+```text
+Do SDKs automatically sign requests?
+```
+
+Answer:
+
+```text
+Yes
+```
+
+---
+
+# Azure Comparison
+
+AWS:
+
+```text
+SigV4
+```
+
+Azure:
+
+```text
+SAS Tokens
+Azure AD Tokens
+```
+
+A pre-signed S3 URL is very similar to:
+
+```text
+Azure Blob SAS URL
+```
+
+Both provide temporary access through a signed URL.
+
+---
+
+# Quick Summary
+
+| Concept | Value |
+|----------|--------|
+| Signing Mechanism | SigV4 |
+| Uses | Access Key + Secret Key |
+| Header Method | Authorization Header |
+| URL Method | X-Amz-Signature |
+| SDK Signs Automatically | Yes |
+| CLI Signs Automatically | Yes |
+| Common Use Case | Pre-Signed URLs |
+
+---
+
+# Exam Cheat Sheet
+
+When you see:
+
+```text
+AWS API Authentication
+```
+
+Think:
+
+```text
+SigV4
+```
+
+When you see:
+
+```text
+Temporary S3 URL
+```
+
+Think:
+
+```text
+Pre-Signed URL
+→ X-Amz-Signature
+```
+
+When you see:
+
+```text
+SDK calling AWS
+```
+
+Think:
+
+```text
+Request automatically signed using SigV4
+```
+
+---
+
+# One-Line Revision
+
+> AWS API requests are authenticated using SigV4 request signing, which uses AWS credentials and sends the signature either in the Authorization header or as `X-Amz-Signature` in the URL.
+
+# S3 Lifecycle Rules & Storage Class Transitions
+
+# Why Lifecycle Rules?
+
+Without lifecycle rules:
+
+```text
+Upload Object
+↓
+Manually Move
+↓
+Manually Archive
+↓
+Manually Delete
+```
+
+With lifecycle rules:
+
+```text
+Upload Object
+↓
+AWS automatically moves/deletes it
+```
+
+---
+
+# Lifecycle Rule Actions
+
+## 1. Transition Action
+
+Move objects to cheaper storage classes.
+
+Example:
+
+```text
+Day 0   → S3 Standard
+Day 60  → Standard-IA
+Day 180 → Glacier
+```
+
+Configuration:
+
+```text
+Transition after X days
+```
+
+---
+
+## 2. Expiration Action
+
+Automatically delete objects.
+
+Example:
+
+```text
+Access Logs
+↓
+Delete after 365 days
+```
+
+---
+
+## 3. Delete Old Versions
+
+If versioning is enabled:
+
+```text
+Version 1
+Version 2
+Version 3 (Current)
+```
+
+Delete older versions automatically.
+
+---
+
+## 4. Delete Incomplete Multipart Uploads
+
+Example:
+
+```text
+50 GB upload started
+Never completed
+```
+
+Delete after:
+
+```text
+14 days
+```
+
+to save storage costs.
+
+---
+
+# Rule Scope
+
+Lifecycle rules can target:
+
+### Entire Bucket
+
+```text
+All objects
+```
+
+---
+
+### Prefix
+
+Example:
+
+```text
+images/*
+documents/*
+logs/*
+```
+
+Only matching objects are affected.
+
+---
+
+### Tags
+
+Example:
+
+```text
+Department=Finance
+Environment=Dev
+```
+
+Only tagged objects are affected.
+
+---
+
+# Common Transition Strategy
+
+```text
+Frequently Accessed
+        ↓
+S3 Standard
+        ↓
+Less Frequently Accessed
+        ↓
+Standard-IA
+        ↓
+Archive
+        ↓
+Glacier
+        ↓
+Long-Term Archive
+        ↓
+Deep Archive
+```
+
+---
+
+# Exam Scenario 1
+
+Requirement:
+
+```text
+Profile photos
+```
+
+Need:
+
+```text
+Immediate access for 60 days
+After that, user can wait hours
+```
+
+Solution:
+
+```text
+S3 Standard
+↓
+Lifecycle Rule
+↓
+Glacier after 60 days
+```
+
+---
+
+# Exam Scenario 2
+
+Requirement:
+
+```text
+Thumbnail images
+```
+
+Characteristics:
+
+```text
+Rarely used
+Can be recreated
+```
+
+Solution:
+
+```text
+One-Zone IA
+↓
+Delete after 60 days
+```
+
+---
+
+# Exam Scenario 3
+
+Requirement:
+
+```text
+Recover deleted files immediately for 30 days
+Recover within 48 hours up to 1 year
+```
+
+Solution:
+
+```text
+Enable Versioning
+```
+
+Then:
+
+```text
+Non-current versions
+↓
+Standard-IA
+↓
+Glacier Deep Archive
+```
+
+---
+
+# Versioning + Lifecycle
+
+Delete operation:
+
+```text
+Delete File
+↓
+Delete Marker Added
+↓
+Old Version Still Exists
+```
+
+Lifecycle can move those old versions to cheaper tiers.
+
+---
+
+# S3 Analytics
+
+Question:
+
+```text
+When should I move data to IA?
+```
+
+Use:
+
+```text
+S3 Storage Class Analytics
+```
+
+---
+
+# What Does It Do?
+
+Analyzes:
+
+```text
+Access patterns
+Storage patterns
+Object usage
+```
+
+Generates:
+
+```text
+CSV Report
+```
+
+with recommendations.
+
+---
+
+# Supports
+
+```text
+S3 Standard
+S3 Standard-IA
+```
+
+---
+
+# Does NOT Support Recommendations For
+
+```text
+One-Zone IA
+Glacier
+Deep Archive
+```
+
+---
+
+# Report Characteristics
+
+```text
+Updated Daily
+```
+
+Initial data:
+
+```text
+24–48 hours
+```
+
+before recommendations appear.
+
+---
+
+# C# Mental Model
+
+Lifecycle Rule = Scheduled Background Job
+
+```csharp
+if(ObjectAge > 60)
+{
+    MoveTo(StorageClass.Glacier);
+}
+
+if(ObjectAge > 365)
+{
+    DeleteObject();
+}
+```
+
+AWS executes this automatically.
+
+---
+
+# Exam Keywords
+
+| Requirement | Feature |
+|-------------|----------|
+| Automatically move storage classes | Lifecycle Rule |
+| Automatically delete files | Expiration Action |
+| Delete old versions | Lifecycle + Versioning |
+| Delete failed uploads | Lifecycle Rule |
+| Analyze access patterns | S3 Analytics |
+| Apply only to folder | Prefix |
+| Apply only to tagged files | Tags |
+
+---
+
+# Most Important Exam Facts
+
+### Infrequently accessed data
+
+```text
+Standard-IA
+```
+
+---
+
+### Archive data
+
+```text
+Glacier
+Deep Archive
+```
+
+---
+
+### Automate transitions
+
+```text
+Lifecycle Rules
+```
+
+---
+
+### Find optimal transition timing
+
+```text
+S3 Analytics
+```
+
+---
+
+# One-Line Revision
+
+> S3 Lifecycle Rules automatically transition, archive, or delete objects based on age, prefixes, or tags, while S3 Analytics helps determine the best time to move objects to cheaper storage classes.
+
+- ![alt text](image-201.png)
+
+# S3 Lifecycle Rules — Hands-On Summary
+
+# Create Lifecycle Rule
+
+```text
+S3 Bucket
+    ↓
+Management
+    ↓
+Lifecycle Rules
+    ↓
+Create Rule
+```
+
+Example:
+
+```text
+Rule Name = DemoRule
+Apply To = Entire Bucket
+```
+
+---
+
+# What Can Lifecycle Rules Do?
+
+There are 5 main actions:
+
+### 1. Transition Current Versions
+
+Move active objects to cheaper storage.
+
+Example:
+
+```text
+Current Object
+↓ 30 days
+Standard-IA
+
+↓ 60 days
+Intelligent-Tiering
+
+↓ 90 days
+Glacier Instant Retrieval
+
+↓ 180 days
+Glacier Flexible Retrieval
+
+↓ 365 days
+Deep Archive
+```
+
+---
+
+### 2. Transition Non-Current Versions
+
+For versioned buckets.
+
+Example:
+
+```text
+file.txt v1
+file.txt v2 (Current)
+```
+
+Here:
+
+```text
+v1 = Non-current version
+```
+
+Move old versions to Glacier:
+
+```text
+After 90 days
+↓
+Glacier Flexible Retrieval
+```
+
+---
+
+### 3. Expire Current Versions
+
+Delete active objects automatically.
+
+Example:
+
+```text
+Current Object
+↓
+Delete after 700 days
+```
+
+---
+
+### 4. Permanently Delete Non-Current Versions
+
+Example:
+
+```text
+Old Versions
+↓
+Delete after 700 days
+```
+
+Helps reduce storage costs.
+
+---
+
+### 5. Delete Incomplete Multipart Uploads
+
+Example:
+
+```text
+50 GB upload started
+Upload never finished
+```
+
+Lifecycle can automatically clean it up.
+
+---
+
+# Example Timeline
+
+```text
+Day 0
+Current Version
+
+Day 30
+Standard-IA
+
+Day 60
+Intelligent-Tiering
+
+Day 90
+Glacier Instant Retrieval
+
+Day 180
+Glacier Flexible Retrieval
+
+Day 365
+Deep Archive
+
+Day 700
+Delete
+```
+
+---
+
+# Versioned Bucket Example
+
+```text
+index.html v1
+index.html v2
+index.html v3 (Current)
+```
+
+Lifecycle Rule:
+
+```text
+v1 + v2
+↓ 90 days
+Glacier
+
+↓ 700 days
+Delete
+```
+
+Current version remains active.
+
+---
+
+# C# Mental Model
+
+Think of AWS running this automatically:
+
+```csharp
+if(ObjectAge > 30)
+{
+    MoveTo(StandardIA);
+}
+
+if(ObjectAge > 90)
+{
+    MoveTo(Glacier);
+}
+
+if(ObjectAge > 700)
+{
+    Delete();
+}
+```
+
+No code required from you.
+
+---
+
+# Why Use Lifecycle Rules?
+
+### Save Money
+
+Move old files to cheaper storage.
+
+```text
+Standard
+↓
+IA
+↓
+Glacier
+↓
+Deep Archive
+```
+
+---
+
+### Automatic Cleanup
+
+Delete:
+
+```text
+Logs
+Backups
+Old Versions
+Failed Uploads
+```
+
+without manual intervention.
+
+---
+
+# Exam Tips
+
+### Current Version
+
+```text
+Latest object version
+```
+
+---
+
+### Non-Current Version
+
+```text
+Older object version
+```
+
+after overwrite.
+
+---
+
+### Lifecycle Rules Can
+
+✅ Move objects between storage classes
+
+✅ Delete old objects
+
+✅ Delete old versions
+
+✅ Delete incomplete uploads
+
+---
+
+### Common Exam Answer
+
+Question:
+
+```text
+Automatically move old S3 objects
+to Glacier after 90 days.
+```
+
+Answer:
+
+```text
+S3 Lifecycle Rule
+```
+
+---
+
+# One-Line Revision
+
+> S3 Lifecycle Rules automatically transition current and non-current object versions to cheaper storage classes and can also expire or permanently delete old objects and incomplete uploads.
+
+
+# S3 Event Notifications — Developer Notes
+
+# What Problem Does It Solve?
+
+Normally:
+
+```text
+User uploads file to S3
+↓
+File just sits there
+```
+
+Nothing happens.
+
+With Event Notifications:
+
+```text
+User uploads file
+↓
+S3 generates an event
+↓
+AWS service reacts automatically
+```
+
+This makes S3 event-driven.
+
+---
+
+# Common Events
+
+### Object Created
+
+```text
+PutObject
+Upload
+Copy
+Multipart Upload Complete
+```
+
+Example:
+
+```text
+resume.pdf uploaded
+```
+
+---
+
+### Object Deleted
+
+```text
+DeleteObject
+Delete Marker Created
+```
+
+Example:
+
+```text
+resume.pdf deleted
+```
+
+---
+
+### Object Restored
+
+Used with Glacier:
+
+```text
+File restored from Glacier
+```
+
+---
+
+### Replication Events
+
+```text
+Object replicated to another bucket
+```
+
+---
+
+# Event Flow
+
+```text
+User Uploads Image
+        ↓
+      S3 Bucket
+        ↓
+  Event Notification
+        ↓
+     Destination
+```
+
+Destinations:
+
+```text
+SNS
+SQS
+Lambda
+EventBridge
+```
+
+---
+
+# Destination 1 — Lambda
+
+Most common.
+
+```text
+Image Upload
+↓
+S3 Event
+↓
+Lambda Function
+↓
+Generate Thumbnail
+```
+
+Real-world:
+
+```text
+photo.jpg
+↓
+Lambda
+↓
+photo_thumbnail.jpg
+```
+
+---
+
+# Destination 2 — SNS
+
+Publish notifications.
+
+```text
+File Uploaded
+↓
+SNS Topic
+↓
+Email
+SMS
+Other Services
+```
+
+Example:
+
+```text
+Invoice uploaded
+↓
+Notify Finance Team
+```
+
+---
+
+# Destination 3 — SQS
+
+Queue messages for processing.
+
+```text
+Upload
+↓
+S3
+↓
+SQS Queue
+↓
+Workers process later
+```
+
+Useful for:
+
+```text
+Large volume uploads
+Background processing
+```
+
+---
+
+# Destination 4 — EventBridge
+
+Modern and most powerful option.
+
+```text
+S3 Event
+↓
+EventBridge
+↓
+Many AWS Services
+```
+
+Can route to:
+
+```text
+Lambda
+Step Functions
+Kinesis
+ECS
+SNS
+SQS
+```
+
+and many more.
+
+---
+
+# Why EventBridge Is Better
+
+S3 Native Notifications:
+
+```text
+Basic filtering
+SNS
+SQS
+Lambda
+```
+
+EventBridge:
+
+```text
+Advanced filtering
+Many targets
+Archive events
+Replay events
+```
+
+---
+
+# Filtering Events
+
+You can filter by filename.
+
+Example:
+
+```text
+Only *.jpg
+```
+
+```text
+photos/profile.jpg
+✔ Trigger
+```
+
+```text
+documents/resume.pdf
+✘ Ignore
+```
+
+---
+
+# Example Architecture
+
+### Profile Photo Processing
+
+```text
+User Uploads profile.jpg
+            ↓
+          S3
+            ↓
+   Event Notification
+            ↓
+        Lambda
+            ↓
+ Create Thumbnail
+            ↓
+ Store Back In S3
+```
+
+Very common interview question.
+
+---
+
+# Permissions Required
+
+S3 cannot push events unless target allows it.
+
+---
+
+### S3 → SNS
+
+Need:
+
+```text
+SNS Resource Policy
+```
+
+---
+
+### S3 → SQS
+
+Need:
+
+```text
+SQS Resource Policy
+```
+
+---
+
+### S3 → Lambda
+
+Need:
+
+```text
+Lambda Resource Policy
+```
+
+---
+
+# Azure Comparison
+
+Since you're coming from Azure:
+
+| AWS | Azure |
+|------|--------|
+| S3 Event Notification | Blob Storage Events |
+| Lambda | Azure Functions |
+| SNS | Event Grid Topic |
+| SQS | Storage Queue / Service Bus |
+| EventBridge | Event Grid |
+
+Example:
+
+```text
+Azure:
+Blob Upload
+↓
+Event Grid
+↓
+Azure Function
+```
+
+Equivalent AWS:
+
+```text
+S3 Upload
+↓
+EventBridge
+↓
+Lambda
+```
+
+---
+
+# Exam Tips
+
+### S3 Upload → Trigger Lambda
+
+Answer:
+
+```text
+S3 Event Notification
+```
+
+---
+
+### S3 Upload → Send Message To Queue
+
+Answer:
+
+```text
+S3 Event Notification + SQS
+```
+
+---
+
+### Need Advanced Filtering
+
+Answer:
+
+```text
+EventBridge
+```
+
+---
+
+### Need To React Automatically To S3 Changes
+
+Answer:
+
+```text
+S3 Event Notifications
+```
+
+---
+
+# C# Mental Model
+
+Think of it like:
+
+```csharp
+public void UploadFile()
+{
+    SaveToS3();
+
+    PublishEvent("ObjectCreated");
+}
+```
+
+AWS automatically raises the event for you.
+
+Consumers subscribe and react.
+
+---
+
+# One-Line Revision
+
+> S3 Event Notifications allow S3 to automatically react to object events (upload, delete, restore, replication) by sending messages to Lambda, SNS, SQS, or EventBridge.
+
+- ![alt text](image-203.png)
+
+
+# S3 Event Notifications — Developer Notes
+
+# What Is It?
+
+S3 can automatically generate events when something happens to an object.
+
+Examples:
+
+```text
+Object Created
+Object Deleted
+Object Restored
+Replication Completed
+```
+
+---
+
+# Why Use It?
+
+Automate actions after file operations.
+
+Example:
+
+```text
+Image Uploaded
+↓
+S3 Event
+↓
+Lambda
+↓
+Create Thumbnail
+```
+
+---
+
+# Supported Destinations
+
+### Lambda
+
+```text
+S3 Upload
+↓
+Lambda Function
+```
+
+Process files automatically.
+
+---
+
+### SQS
+
+```text
+S3 Upload
+↓
+SQS Queue
+↓
+Background Worker
+```
+
+For asynchronous processing.
+
+---
+
+### SNS
+
+```text
+S3 Upload
+↓
+SNS Topic
+↓
+Email / SMS / Subscribers
+```
+
+For notifications.
+
+---
+
+### EventBridge
+
+```text
+S3 Event
+↓
+EventBridge
+↓
+Many AWS Services
+```
+
+Provides advanced routing and filtering.
+
+---
+
+# Event Filtering
+
+Can filter by:
+
+```text
+Prefix
+Suffix
+```
+
+Examples:
+
+```text
+photos/*
+```
+
+or
+
+```text
+*.jpg
+```
+
+Only matching objects trigger events.
+
+---
+
+# SQS Demo Flow
+
+```text
+Upload coffee.jpg
+↓
+S3 generates ObjectCreated event
+↓
+Message sent to SQS
+↓
+Consumer reads queue
+```
+
+SQS message contains:
+
+```text
+Event Type
+Bucket Name
+Object Key
+Timestamp
+```
+
+Example:
+
+```text
+ObjectCreated:Put
+coffee.jpg
+```
+
+---
+
+# Important Permission Requirement
+
+S3 must be allowed to publish to destination.
+
+Examples:
+
+```text
+S3 → SNS     → SNS Resource Policy
+S3 → SQS     → SQS Resource Policy
+S3 → Lambda  → Lambda Resource Policy
+```
+
+Without permission:
+
+```text
+Destination validation failed
+```
+
+---
+
+# Exam Tips
+
+### Upload file → Trigger Lambda
+
+```text
+S3 Event Notification + Lambda
+```
+
+### Upload file → Queue processing
+
+```text
+S3 Event Notification + SQS
+```
+
+### Upload file → Send notifications
+
+```text
+S3 Event Notification + SNS
+```
+
+### Need advanced routing/filtering
+
+```text
+S3 → EventBridge
+```
+
+---
+
+# One-Line Revision
+
+> S3 Event Notifications automatically react to object events (upload, delete, restore, replication) and send them to Lambda, SQS, SNS, or EventBridge for further processing.
+
+## S3 Baseline Performance
+
+
+- ![alt text](image-204.png)
+- ![alt text](image-205.png)
+- ![alt text](image-206.png)
+
+# S3 Object Metadata & Tags — Developer Notes
+
+# 1. Object Metadata
+
+Metadata = extra information attached to an S3 object.
+
+Example:
+
+```text
+resume.pdf
+```
+
+Metadata:
+
+```text
+Content-Type = application/pdf
+Content-Length = 2 MB
+x-amz-meta-department = Finance
+x-amz-meta-origin = Bangalore
+```
+
+### Types
+
+#### AWS-managed Metadata
+
+Automatically created:
+
+```text
+Content-Type
+Content-Length
+Last-Modified
+ETag
+```
+
+#### User-defined Metadata
+
+Created by you:
+
+```text
+x-amz-meta-project = Blue
+x-amz-meta-owner = Nishant
+```
+
+**Rule:** User metadata must start with:
+
+```text
+x-amz-meta-
+```
+
+---
+
+# 2. Object Tags
+
+Tags are simple key-value pairs.
+
+Example:
+
+```text
+Project = Blue
+Environment = Prod
+Department = Finance
+```
+
+Maximum:
+
+```text
+10 tags per object
+```
+
+---
+
+# Metadata vs Tags
+
+| Metadata | Tags |
+|-----------|------|
+| Describes object | Categorizes object |
+| Retrieved with object | Managed separately |
+| Cannot be used for IAM policies | Can be used for IAM policies |
+| Cannot be changed easily | Easily updated |
+
+---
+
+# Why Use Tags?
+
+### Access Control
+
+Example:
+
+```text
+Department = Finance
+```
+
+Only Finance users can access.
+
+---
+
+### Analytics
+
+Example:
+
+```text
+Project = Blue
+Project = Red
+```
+
+Analyze storage usage by project.
+
+---
+
+### Lifecycle Rules
+
+Example:
+
+```text
+Archive only files where:
+
+Environment = Archive
+```
+
+---
+
+# Important Exam Point
+
+❌ S3 cannot search by:
+
+```text
+Metadata
+Tags
+```
+
+You cannot do:
+
+```text
+Find all files where
+Project = Blue
+```
+
+directly in S3.
+
+---
+
+# How To Search S3 Objects?
+
+Use an external index.
+
+Typical architecture:
+
+```text
+S3
+↓
+Store metadata/tags
+↓
+DynamoDB
+↓
+Search DynamoDB
+↓
+Get matching S3 objects
+```
+
+---
+
+# Exam Tips
+
+### Need object categorization?
+
+```text
+Use Tags
+```
+
+### Need additional object information?
+
+```text
+Use Metadata
+```
+
+### Need fine-grained permissions?
+
+```text
+Use Tags
+```
+
+### Need searchable S3 objects?
+
+```text
+Store metadata in DynamoDB
+```
+
+### Can S3 search by metadata/tags?
+
+```text
+No
+```
+
+---
+
+# One-Line Revision
+
+> Metadata and Tags are key-value pairs attached to S3 objects, but neither is searchable in S3. Use DynamoDB or another database as an external index for searching.
+
+- ![alt text](image-208.png)
+
+# Amazon S3 Security
+# Amazon S3 Object Encryption
+
+## Overview
+
+Amazon S3 supports **4 encryption methods**:
+
+| Method | Who Manages Key? | Encryption Location |
+|----------|----------|----------|
+| SSE-S3 | AWS (S3) | Server-side |
+| SSE-KMS | Customer via KMS | Server-side |
+| SSE-C | Customer provides key | Server-side |
+| Client-Side Encryption | Customer | Client-side |
+
+---
+
+# 1. SSE-S3 (Server-Side Encryption with S3 Managed Keys)
+
+### What is it?
+- AWS manages and owns the encryption keys.
+- Uses **AES-256** encryption.
+- Simplest encryption option.
+- **Enabled by default** for all new S3 buckets and objects.
+
+### Required Header
+
+```http
+x-amz-server-side-encryption: AES256
+```
+
+### Flow
+
+```text
+Upload Object
+      ↓
+Amazon S3 encrypts using AWS-owned key
+      ↓
+Encrypted object stored in S3
+```
+
+### Key Points
+- AWS manages everything.
+- No access to encryption keys.
+- Lowest operational overhead.
+- Default choice if no special requirements exist.
+
+### Exam Tip
+If question says:
+
+> "Encrypt S3 objects with AWS-managed keys"
+
+Answer:
+
+```text
+SSE-S3
+```
+
+---
+
+# 2. SSE-KMS (Server-Side Encryption with KMS Keys)
+
+### What is it?
+- Encryption keys stored in AWS KMS.
+- Customer controls key permissions.
+- Key usage logged in CloudTrail.
+
+### Required Header
+
+```http
+x-amz-server-side-encryption: aws:kms
+```
+
+### Flow
+
+```text
+Upload Object
+      ↓
+S3 requests KMS Key
+      ↓
+Object encrypted
+      ↓
+Stored in S3
+```
+
+### Advantages
+
+#### Key Control
+- Create your own keys.
+- Control access using IAM and KMS policies.
+
+#### Audit Trail
+- Every key usage logged in CloudTrail.
+
+### Access Requirement
+
+To read the object:
+
+```text
+Need access to:
+1. S3 Object
+2. KMS Key
+```
+
+### KMS API Calls
+
+During encryption/decryption S3 calls KMS APIs such as:
+
+```text
+GenerateDataKey
+Decrypt
+```
+
+### Limitation
+
+KMS has API quotas.
+
+Typical limits:
+
+```text
+5,000 - 30,000 requests/sec
+```
+
+High-throughput applications may hit KMS throttling.
+
+### Exam Tip
+
+If question mentions:
+
+- Audit key usage
+- CloudTrail tracking
+- Customer-managed keys
+
+Answer:
+
+```text
+SSE-KMS
+```
+
+---
+
+# 3. SSE-C (Server-Side Encryption with Customer-Provided Keys)
+
+### What is it?
+
+- Customer provides encryption key.
+- Key is NOT stored by AWS.
+- S3 uses key temporarily and discards it.
+
+### Requirements
+
+Must use:
+
+```text
+HTTPS
+```
+
+Must provide encryption key in every request.
+
+### Flow
+
+```text
+Client provides:
+  - Object
+  - Encryption Key
+
+       ↓
+
+S3 encrypts object
+
+       ↓
+
+Encrypted object stored
+```
+
+### Important
+
+To download object:
+
+```text
+Must provide same encryption key again
+```
+
+### Key Points
+
+- AWS never stores key.
+- Key managed outside AWS.
+- HTTPS mandatory.
+
+### Exam Tip
+
+If question says:
+
+> "Customer wants full control of encryption key but still wants S3 to perform encryption"
+
+Answer:
+
+```text
+SSE-C
+```
+
+---
+
+# 4. Client-Side Encryption
+
+### What is it?
+
+Client encrypts data BEFORE sending it to S3.
+
+AWS never sees unencrypted data.
+
+### Flow
+
+```text
+File + Client Key
+        ↓
+Client encrypts file
+        ↓
+Encrypted file uploaded to S3
+```
+
+### Key Points
+
+- Encryption occurs outside AWS.
+- Customer fully manages keys.
+- AWS stores only encrypted data.
+- Maximum security and control.
+
+### Exam Tip
+
+If question says:
+
+> "Data must be encrypted before reaching AWS"
+
+Answer:
+
+```text
+Client-Side Encryption
+```
+
+---
+
+# Encryption in Transit (SSL/TLS)
+
+Also called:
+
+```text
+Encryption in Flight
+```
+
+Protects data while moving between client and S3.
+
+### Endpoints
+
+#### HTTP
+
+```text
+Not encrypted
+```
+
+#### HTTPS
+
+```text
+Encrypted using SSL/TLS
+```
+
+### Best Practice
+
+Always use:
+
+```text
+HTTPS
+```
+
+### Special Case
+
+For:
+
+```text
+SSE-C
+```
+
+HTTPS is mandatory.
+
+---
+
+# Force HTTPS Using Bucket Policy
+
+You can deny requests that use HTTP.
+
+Example:
+
+```json
+{
+  "Effect": "Deny",
+  "Action": "s3:GetObject",
+  "Resource": "*",
+  "Condition": {
+    "Bool": {
+      "aws:SecureTransport": "false"
+    }
+  }
+}
+```
+
+### Meaning
+
+```text
+SecureTransport = false
+```
+
+→ Request uses HTTP
+
+```text
+Result = DENY
+```
+
+```text
+SecureTransport = true
+```
+
+→ Request uses HTTPS
+
+```text
+Result = Allowed (if permissions permit)
+```
+
+---
+
+# Quick Comparison Table
+
+| Feature | SSE-S3 | SSE-KMS | SSE-C | Client-Side |
+|----------|----------|----------|----------|----------|
+| Key Owner | AWS | Customer (KMS) | Customer | Customer |
+| Encryption Location | S3 | S3 | S3 | Client |
+| CloudTrail Auditing | No | Yes | No | No |
+| AWS Stores Key | Yes | Yes (KMS) | No | No |
+| HTTPS Required | Recommended | Recommended | Mandatory | Recommended |
+| Default Option | Yes | No | No | No |
+
+---
+
+# Exam Memory Trick
+
+```text
+SSE-S3
+= AWS owns key
+
+SSE-KMS
+= Customer controls key via KMS + CloudTrail
+
+SSE-C
+= Customer provides key every time
+
+Client-Side
+= Encrypt before AWS ever sees the data
+```
+
+## 30-Second Revision
+
+- **SSE-S3** → AWS-managed AES-256 encryption (default).
+- **SSE-KMS** → Customer-managed KMS key + CloudTrail auditing.
+- **SSE-C** → Customer supplies key; AWS never stores it; HTTPS required.
+- **Client-Side Encryption** → Encrypt before upload; AWS only stores ciphertext.
+- **Encryption in Transit** = HTTPS/TLS.
+- Use bucket policy with **aws:SecureTransport=false** to block HTTP requests.
+
+- ![alt text](image-209.png)
+- ![alt text](image-210.png)
+
+- ![alt text](image-211.png)
+- ![alt text](image-212.png)
+- ![alt text](image-213.png)
+- ![alt text](image-214.png)
+- ![alt text](image-215.png)
+- ![alt text](image-216.png)
+- SSE-C can only be done from CLI not from AWS Console.
+- ![alt text](image-218.png)
+
+# CORS in AWS
+
+- ![alt text](image-219.png)
+- ![alt text](image-220.png)
+- ![alt text](image-221.png)
+- ![alt text](image-222.png)
+- ![alt text](image-223.png)
+- ![alt text](image-224.png)
+
+# Amazon S3 MFA Delete
+
+## What is MFA Delete?
+
+**MFA Delete** is an additional security layer that requires a valid **Multi-Factor Authentication (MFA)** code before performing highly destructive operations on an S3 bucket.
+
+MFA can come from:
+
+- Authenticator apps (Google Authenticator, Authy, etc.)
+- Hardware MFA devices
+
+---
+
+# Why Does MFA Delete Exist?
+
+Imagine an attacker obtains:
+
+```text
+AWS Access Key
+AWS Secret Key
+```
+
+Without MFA Delete:
+
+```text
+Attacker
+   ↓
+Deletes all object versions
+   ↓
+Data permanently lost
+```
+
+With MFA Delete:
+
+```text
+Attacker
+   ↓
+Attempts deletion
+   ↓
+MFA code required
+   ↓
+Operation denied
+```
+
+It protects against accidental or malicious permanent data deletion.
+
+---
+
+# Operations That REQUIRE MFA
+
+## 1. Permanently Deleting an Object Version
+
+Example:
+
+```text
+Object Version 1
+Object Version 2
+Object Version 3
+```
+
+Deleting Version 2 forever:
+
+```text
+MFA Required
+```
+
+---
+
+## 2. Suspending Versioning
+
+Example:
+
+```text
+Versioning = Enabled
+```
+
+Attempting:
+
+```text
+Versioning = Suspended
+```
+
+Requires:
+
+```text
+MFA Required
+```
+
+Because disabling versioning weakens data protection.
+
+---
+
+# Operations That DO NOT Require MFA
+
+### Enable Versioning
+
+```text
+Versioning: Disabled
+        ↓
+Versioning: Enabled
+```
+
+No MFA needed.
+
+---
+
+### List Object Versions
+
+```text
+View versions
+```
+
+No MFA needed.
+
+---
+
+### Read Objects
+
+```text
+GET Object
+```
+
+No MFA needed.
+
+---
+
+### Upload Objects
+
+```text
+PUT Object
+```
+
+No MFA needed.
+
+---
+
+# Prerequisites
+
+## Versioning Must Be Enabled
+
+MFA Delete works only with:
+
+```text
+S3 Versioning
+```
+
+Without versioning:
+
+```text
+MFA Delete = Not Available
+```
+
+### Relationship
+
+```text
+Versioning
+      ↓
+MFA Delete
+```
+
+Think:
+
+> MFA Delete protects object versions, therefore versioning must exist first.
+
+---
+
+# Who Can Enable MFA Delete?
+
+Only:
+
+```text
+AWS Account Root User
+```
+
+can:
+
+- Enable MFA Delete
+- Disable MFA Delete
+
+### Important Exam Fact
+
+Even IAM administrators cannot enable or disable MFA Delete.
+
+```text
+IAM Admin ❌
+
+Root Account ✅
+```
+
+---
+
+# Mental Model
+
+Imagine a bank vault:
+
+```text
+Normal Operations
+   ↓
+Key Required
+
+Dangerous Operations
+   ↓
+Key + OTP Required
+```
+
+MFA Delete adds the "OTP Required" step.
+
+---
+
+# Common Exam Question
+
+### Scenario
+
+A company wants:
+
+- Versioning enabled
+- Protection against accidental permanent deletion
+- Additional authentication before deleting versions
+
+Answer:
+
+```text
+Enable MFA Delete
+```
+
+---
+
+# Versioning + MFA Delete
+
+```text
+Versioning Enabled
+        +
+MFA Delete Enabled
+```
+
+Provides:
+
+### Protection Against
+
+- Accidental deletion
+- Malicious deletion
+- Compromised credentials
+- Insider mistakes
+
+---
+
+# Exam Memory Trick
+
+```text
+Versioning
+=
+Recovery
+
+MFA Delete
+=
+Protection of Recovery
+```
+
+or
+
+```text
+Versioning
+= Undo button
+
+MFA Delete
+= Lock on the Undo button
+```
+
+---
+
+# Quick Recap
+
+- MFA Delete requires an MFA code for destructive S3 operations.
+- Must have **Versioning enabled** first.
+- MFA required for:
+  - Permanent deletion of object versions
+  - Suspending versioning
+- MFA NOT required for:
+  - Enabling versioning
+  - Listing versions
+  - Uploading or reading objects
+- Only the **Root Account** can enable/disable MFA Delete.
+- Common exam answer when asked about preventing accidental permanent deletion in S3.
+
+- ![alt text](image-225.png)
+- ![alt text](image-226.png)
+- ![alt text](image-227.png)
+- ![alt text](image-228.png)
+- ![alt text](image-229.png)
+- ![alt text](image-230.png)
+
+
+# S3 Access Logs
+- ![alt text](image-231.png)
+- ![alt text](image-232.png)
+- ![alt text](image-233.png)
+- ![alt text](image-234.png)
+- ![alt text](image-235.png)
+
+# S3 Pre-signed URLs
+- ![alt text](image-237.png)
+- Similar to Azure Blob SAS Tokens
+```c#
+var request = new GetPreSignedUrlRequest
+{
+    BucketName = "documents",
+    Key = "report.pdf",
+    Expires = DateTime.UtcNow.AddHours(1)
+};
+
+string url = s3Client.GetPreSignedURL(request);
+
+```
+- ![alt text](image-238.png)
+- ![alt text](image-239.png)
+
+
+# Amazon S3 Access Points
+
+## What Problem Do Access Points Solve?
+
+Imagine a single S3 bucket storing data for multiple teams:
+
+```text
+company-data-bucket
+
+├── finance/
+├── sales/
+├── analytics/
+├── hr/
+└── engineering/
+```
+
+Without Access Points:
+
+```text
+One Bucket
+      ↓
+One Huge Bucket Policy
+      ↓
+Complex and Hard to Manage
+```
+
+As users and data grow:
+
+- Bucket policy becomes massive
+- Difficult to maintain
+- Higher chance of security mistakes
+
+---
+
+# Solution: S3 Access Points
+
+An **Access Point** provides a dedicated way to access a specific part of an S3 bucket.
+
+Think of it as:
+
+```text
+Different doors into the same house
+```
+
+Instead of:
+
+```text
+One giant security policy
+```
+
+You create:
+
+```text
+Multiple smaller security policies
+```
+
+---
+
+# Example Architecture
+
+## Single Bucket
+
+```text
+company-data-bucket
+
+├── finance/
+└── sales/
+```
+
+---
+
+## Finance Access Point
+
+```text
+Finance Access Point
+      ↓
+finance/*
+```
+
+Policy:
+
+```text
+Read + Write
+```
+
+for finance users only.
+
+---
+
+## Sales Access Point
+
+```text
+Sales Access Point
+      ↓
+sales/*
+```
+
+Policy:
+
+```text
+Read + Write
+```
+
+for sales users only.
+
+---
+
+## Analytics Access Point
+
+```text
+Analytics Access Point
+       ↓
+finance/*
+sales/*
+```
+
+Policy:
+
+```text
+Read Only
+```
+
+for analysts.
+
+---
+
+# Result
+
+Instead of:
+
+```text
+One Giant Bucket Policy
+```
+
+You get:
+
+```text
+Finance Policy
+Sales Policy
+Analytics Policy
+```
+
+Each independently managed.
+
+---
+
+# Access Point Policy
+
+Each access point has its own policy.
+
+Very similar to:
+
+```text
+S3 Bucket Policy
+```
+
+Example:
+
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "s3:GetObject",
+    "s3:PutObject"
+  ]
+}
+```
+
+Attached directly to the access point.
+
+---
+
+# Key Benefits
+
+## 1. Simplified Security
+
+Instead of:
+
+```text
+1 Bucket
+1 Huge Policy
+```
+
+Use:
+
+```text
+1 Bucket
+Many Small Policies
+```
+
+---
+
+## 2. Better Scalability
+
+Works well for:
+
+- Large organizations
+- Multiple teams
+- Hundreds of applications
+- Data lakes
+
+---
+
+## 3. Easier Delegation
+
+Security ownership can be delegated.
+
+Example:
+
+```text
+Finance Team
+     ↓
+Manages Finance Access Point
+
+Sales Team
+     ↓
+Manages Sales Access Point
+```
+
+---
+
+# Access Point DNS Name
+
+Every access point gets its own endpoint.
+
+Example:
+
+```text
+finance-access-point
+sales-access-point
+analytics-access-point
+```
+
+Applications connect using the access point DNS name instead of directly using the bucket.
+
+---
+
+# Internet vs VPC Access
+
+## Internet-Origin Access Point
+
+```text
+Application
+      ↓
+Internet
+      ↓
+Access Point
+      ↓
+S3 Bucket
+```
+
+Publicly reachable (subject to permissions).
+
+---
+
+## VPC-Origin Access Point
+
+```text
+EC2
+ ↓
+VPC
+ ↓
+Access Point
+ ↓
+S3 Bucket
+```
+
+Traffic remains private.
+
+No public internet required.
+
+---
+
+# VPC-Origin Access Points
+
+For private access:
+
+```text
+Access Point Origin = VPC
+```
+
+Applications must connect through:
+
+```text
+VPC Endpoint
+```
+
+---
+
+# Why VPC Endpoint?
+
+It provides:
+
+```text
+Private AWS Network Connectivity
+```
+
+instead of:
+
+```text
+Internet Connectivity
+```
+
+---
+
+# Private Access Flow
+
+```text
+EC2 Instance
+      ↓
+VPC Endpoint
+      ↓
+S3 Access Point
+      ↓
+S3 Bucket
+```
+
+No traffic traverses the internet.
+
+---
+
+# Security Layers
+
+With VPC-origin access points there are multiple security checks.
+
+## Layer 1
+
+### IAM Permissions
+
+```text
+Can user call S3?
+```
+
+---
+
+## Layer 2
+
+### VPC Endpoint Policy
+
+```text
+Can traffic use this endpoint?
+```
+
+---
+
+## Layer 3
+
+### Access Point Policy
+
+```text
+Can access point expose this data?
+```
+
+---
+
+## Layer 4
+
+### Bucket Policy
+
+```text
+Can bucket allow access?
+```
+
+---
+
+### Combined View
+
+```text
+IAM
+ ↓
+VPC Endpoint Policy
+ ↓
+Access Point Policy
+ ↓
+Bucket Policy
+ ↓
+S3 Object
+```
+
+All permissions must align.
+
+---
+
+# Azure Comparison
+
+Closest Azure equivalent:
+
+```text
+Azure Blob Storage
+       +
+Private Endpoints
+       +
+RBAC
+       +
+Container-Level Permissions
+```
+
+However, Azure does NOT have a direct equivalent of:
+
+```text
+S3 Access Points
+```
+
+Access Points are unique because they create:
+
+```text
+Multiple Named Entry Points
+Each With Its Own Policy
+```
+
+for the same bucket.
+
+---
+
+# When Should You Use Access Points?
+
+Use when:
+
+- Large shared S3 buckets
+- Multiple teams
+- Different access requirements
+- Data lake architectures
+- Complex bucket policies becoming difficult to manage
+
+---
+
+# Exam Memory Trick
+
+Think:
+
+```text
+Bucket Policy
+=
+One Front Door
+```
+
+```text
+S3 Access Points
+=
+Multiple Doors
+Each With Its Own Security Guard
+```
+
+---
+
+# Common Exam Scenario
+
+### Problem
+
+```text
+One S3 bucket
+Many teams
+Different permissions
+Bucket policy becoming complex
+```
+
+### Best Solution
+
+```text
+S3 Access Points
+```
+
+---
+
+# Quick Recap
+
+- S3 Access Points simplify security management for large buckets.
+- Each access point has its own policy.
+- Each access point gets its own DNS name.
+- Can expose different prefixes with different permissions.
+- Can be Internet-facing or VPC-only.
+- VPC-origin access points require a VPC Endpoint.
+- Ideal for multi-team and data-lake architectures.
+- Common AWS exam answer when bucket policies become difficult to manage.
+
+- ![alt text](image-241.png)
+- ![alt text](image-242.png)
+
+
+# Amazon S3 Object Lambda
+
+## What Problem Does It Solve?
+
+Normally, if different applications need different versions of the same object:
+
+```text
+Original Object
+Redacted Object
+Enriched Object
+```
+
+You might create multiple copies of the object in different buckets.
+
+**S3 Object Lambda eliminates the need for duplicate copies.**
+
+---
+
+# How It Works
+
+```text
+Application
+     ↓
+S3 Object Lambda Access Point
+     ↓
+Lambda Function
+     ↓
+S3 Bucket
+```
+
+When an object is requested:
+
+1. Lambda retrieves the original object from S3.
+2. Lambda modifies/transforms the object.
+3. Modified object is returned to the caller.
+
+The original object remains unchanged.
+
+---
+
+# Example
+
+### Original Object
+
+```json
+{
+  "name": "John",
+  "email": "john@email.com",
+  "salary": 100000
+}
+```
+
+### Analytics Application
+
+Needs PII removed.
+
+Lambda returns:
+
+```json
+{
+  "salary": 100000
+}
+```
+
+### Marketing Application
+
+Needs enriched customer data.
+
+Lambda returns:
+
+```json
+{
+  "name": "John",
+  "loyaltyLevel": "Gold"
+}
+```
+
+Same S3 object, different outputs.
+
+---
+
+# Common Use Cases
+
+### 1. PII Redaction
+
+Remove sensitive data before sharing.
+
+```text
+Original → Redacted
+```
+
+---
+
+### 2. Data Transformation
+
+Convert formats on-the-fly.
+
+```text
+XML → JSON
+CSV → JSON
+```
+
+---
+
+### 3. Image Processing
+
+```text
+Resize Images
+Add Watermarks
+Compress Images
+```
+
+during retrieval.
+
+---
+
+### 4. Data Enrichment
+
+Add data from external systems:
+
+```text
+S3 Object
+      +
+Database Lookup
+      ↓
+Enriched Response
+```
+
+---
+
+# Exam Tip
+
+### Question Pattern
+
+> Different users need different views of the same S3 object without storing multiple copies.
+
+Answer:
+
+```text
+S3 Object Lambda
+```
+
+---
+
+# Mental Model
+
+```text
+S3 Access Point
+=
+Door to S3
+
+S3 Object Lambda
+=
+Smart Door that modifies data before returning it
+```
+
+---
+
+# Quick Recap
+
+- Uses **S3 Access Points + Lambda**.
+- Transforms objects during retrieval.
+- Original S3 object is never modified.
+- Avoids storing duplicate copies.
+- Common uses:
+  - PII redaction
+  - XML → JSON conversion
+  - Image resizing/watermarking
+  - Data enrichment
+- Exam keyword: **"transform S3 data on-the-fly during GET requests."**
+
+- ![alt text](image-243.png)
+
+# AWS Cloudfront
